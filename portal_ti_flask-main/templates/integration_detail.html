@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}{{ integration }} | Portal TI{% endblock %}
+{% block body %}
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">Integrações</span>
+        <h1><i class="bi {{ icon }} page-title-icon"></i>{{ integration }}</h1>
+        <p>Área preparada para receber os dados da integração com {{ integration }}.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('portal.home') }}"><i class="bi bi-arrow-left"></i> Voltar</a>
+</section>
+
+<section class="empty-state-card">
+    <div class="empty-state-icon"><i class="bi bi-plug"></i></div>
+    <h2>Integração ainda não configurada</h2>
+    <p>O layout está pronto. A conexão, as credenciais e os dados reais serão adicionados na fase de APIs.</p>
+    <span class="status-badge status-planned"><span></span>Planejado</span>
+</section>
+{% endblock %}

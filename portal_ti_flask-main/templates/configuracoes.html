@@ -1,0 +1,898 @@
+{% extends 'base.html' %}
+
+{% block title %}Configurações | Portal TI{% endblock %}
+
+{% block body %}
+
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">Portal TI</span>
+        <h1>Configurações</h1>
+        <p>Informações do ambiente e gerenciamento dos usuários do portal.</p>
+    </div>
+
+    <div class="heading-actions">
+        <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCadastrarUsuario"
+        >
+            <i class="bi bi-person-plus"></i>
+            Cadastrar usuário
+        </button>
+    </div>
+</section>
+
+{% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+        {% for categoria, mensagem in mensagens %}
+            <div
+                class="alert alert-{{ categoria }} alert-dismissible fade show"
+                role="alert"
+            >
+                {{ mensagem }}
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Fechar"
+                ></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<section class="content-section">
+
+    <div class="section-heading">
+        <div>
+            <h2>Ambiente</h2>
+            <p>Status dos principais componentes do sistema.</p>
+        </div>
+    </div>
+
+    <div class="integration-grid">
+
+        <article class="integration-card">
+
+            <div class="integration-card-top">
+                <div class="integration-icon">
+                    <i class="bi bi-globe2"></i>
+                </div>
+
+                <span class="status-badge">
+                    <span></span>
+                    Ativo
+                </span>
+            </div>
+
+            <div class="integration-card-body">
+                <h3>Portal TI</h3>
+
+                <p>
+                    Ambiente interno para softwares, procedimentos,
+                    ferramentas e inventário.
+                </p>
+            </div>
+
+            <div class="integration-card-footer">
+                <span>Ambiente de desenvolvimento</span>
+            </div>
+
+        </article>
+
+        <article class="integration-card">
+
+            <div class="integration-card-top">
+                <div class="integration-icon">
+                    <i class="bi bi-database"></i>
+                </div>
+
+                {% if banco_conectado %}
+                    <span class="status-badge">
+                        <span></span>
+                        Conectado
+                    </span>
+                {% else %}
+                    <span class="status-badge status-planned">
+                        <span></span>
+                        Desconectado
+                    </span>
+                {% endif %}
+            </div>
+
+            <div class="integration-card-body">
+                <h3>Banco de dados</h3>
+
+                <p>
+                    Conexão com o banco MySQL utilizado pelo Portal TI.
+                </p>
+            </div>
+
+            <div class="integration-card-footer">
+                {% if banco_conectado %}
+                    <span>Conexão funcionando</span>
+                {% else %}
+                    <span>Verifique o terminal</span>
+                {% endif %}
+            </div>
+
+        </article>
+
+        <article class="integration-card">
+
+            <div class="integration-card-top">
+                <div class="integration-icon">
+                    <i class="bi bi-folder2-open"></i>
+                </div>
+            </div>
+
+            <div class="integration-card-body">
+                <h3>Pasta de uploads</h3>
+
+                <p class="text-break">
+                    {{ pasta_uploads }}
+                </p>
+            </div>
+
+            <div class="integration-card-footer">
+                <span>Arquivos anexados ao portal</span>
+            </div>
+
+        </article>
+
+    </div>
+
+</section>
+
+<section class="content-section mt-4">
+
+    <div class="section-heading">
+        <div>
+            <h2>Dados do sistema</h2>
+            <p>Quantidade atual de registros nos módulos.</p>
+        </div>
+    </div>
+
+    <div class="metric-grid">
+
+        <article class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-box-seam"></i>
+            </div>
+
+            <div>
+                <span>Softwares</span>
+                <strong>{{ totais.softwares }}</strong>
+                <small>Cadastrados</small>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-journal-text"></i>
+            </div>
+
+            <div>
+                <span>Procedimentos</span>
+                <strong>{{ totais.procedimentos }}</strong>
+                <small>Cadastrados</small>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-tools"></i>
+            </div>
+
+            <div>
+                <span>Ferramentas</span>
+                <strong>{{ totais.ferramentas }}</strong>
+                <small>Cadastradas</small>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-device-hdd"></i>
+            </div>
+
+            <div>
+                <span>Discos no cofre</span>
+                <strong>{{ totais.discos }}</strong>
+                <small>Cadastrados</small>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-people"></i>
+            </div>
+
+            <div>
+                <span>Usuários</span>
+                <strong>{{ totais.usuarios }}</strong>
+                <small>Cadastrados</small>
+            </div>
+        </article>
+
+    </div>
+
+</section>
+
+<section class="content-section mt-4">
+
+    <div class="section-heading">
+        <div>
+            <h2>Usuários do Portal</h2>
+            <p>Gerencie os quatro usuários que terão acesso ao sistema.</p>
+        </div>
+
+        <div style="width: 320px;">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+
+                <input
+                    type="search"
+                    id="pesquisaUsuarios"
+                    class="form-control"
+                    placeholder="Pesquisar usuário ou perfil"
+                    autocomplete="off"
+                >
+            </div>
+        </div>
+    </div>
+
+    {% if usuarios %}
+
+        <div class="integration-grid">
+
+            {% for usuario_item in usuarios %}
+
+                <article
+                    class="integration-card usuario-card"
+                    data-nome="{{ usuario_item.nome }}"
+                    data-usuario="{{ usuario_item.usuario }}"
+                    data-email="{{ usuario_item.email }}"
+                    data-perfil="{{ usuario_item.perfil }}"
+                >
+
+                    <div class="integration-card-top">
+
+                        <div class="integration-icon">
+                            <i class="bi bi-person"></i>
+                        </div>
+
+                        {% if usuario_item.ativo %}
+                            <span class="status-badge">
+                                <span></span>
+                                Ativo
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-planned">
+                                <span></span>
+                                Inativo
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="integration-card-body">
+
+                        <h3>{{ usuario_item.nome }}</h3>
+
+                        <small class="d-block">
+                            <i class="bi bi-person-badge"></i>
+                            {{ usuario_item.usuario }}
+                        </small>
+
+                        <small class="d-block mt-1">
+                            <i class="bi bi-envelope"></i>
+                            {{ usuario_item.email }}
+                        </small>
+
+                        <small class="d-block mt-1">
+                            <i class="bi bi-shield-check"></i>
+                            {{ usuario_item.perfil|capitalize }}
+                        </small>
+
+                        <p class="mt-3">
+                            {% if usuario_item.ultimo_login %}
+                                Último login:
+                                {{ usuario_item.ultimo_login.strftime('%d/%m/%Y %H:%M') }}
+                            {% else %}
+                                Nenhum login registrado.
+                            {% endif %}
+                        </p>
+
+                    </div>
+
+                    <div class="integration-card-footer">
+
+                        {% if usuario_item.id == current_user.id %}
+                            <span>
+                                <i class="bi bi-person-check"></i>
+                                Você
+                            </span>
+                        {% else %}
+                            <span>Usuário do portal</span>
+                        {% endif %}
+
+                        <div class="d-flex gap-2">
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEditarUsuario{{ usuario_item.id }}"
+                                title="Editar"
+                            >
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-primary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalSenhaUsuario{{ usuario_item.id }}"
+                                title="Redefinir senha"
+                            >
+                                <i class="bi bi-key"></i>
+                            </button>
+
+                            {% if usuario_item.id != current_user.id %}
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalExcluirUsuario{{ usuario_item.id }}"
+                                    title="Excluir"
+                                >
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+                <div
+                    class="modal fade"
+                    id="modalEditarUsuario{{ usuario_item.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog modal-dialog-centered">
+
+                        <div class="modal-content">
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'configuracoes.editar_usuario',
+                                    usuario_id=usuario_item.id
+                                ) }}"
+                            >
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        Editar usuário
+                                    </h5>
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Fechar"
+                                    ></button>
+                                </div>
+
+                                <div class="modal-body">
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Nome</label>
+
+                                        <input
+                                            type="text"
+                                            name="nome"
+                                            class="form-control"
+                                            value="{{ usuario_item.nome }}"
+                                            required
+                                        >
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">E-mail</label>
+
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            class="form-control"
+                                            value="{{ usuario_item.email }}"
+                                            required
+                                        >
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Usuário</label>
+
+                                        <input
+                                            type="text"
+                                            name="usuario"
+                                            class="form-control"
+                                            value="{{ usuario_item.usuario }}"
+                                            required
+                                        >
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Perfil</label>
+
+                                        <select
+                                            name="perfil"
+                                            class="form-select"
+                                            required
+                                        >
+                                            <option
+                                                value="administrador"
+                                                {% if usuario_item.perfil == "administrador" %}selected{% endif %}
+                                            >
+                                                Administrador
+                                            </option>
+
+                                            <option
+                                                value="analista"
+                                                {% if usuario_item.perfil == "analista" %}selected{% endif %}
+                                            >
+                                                Analista
+                                            </option>
+
+                                            <option
+                                                value="estagiario"
+                                                {% if usuario_item.perfil == "estagiario" %}selected{% endif %}
+                                            >
+                                                Estagiário
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-check form-switch">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="ativo"
+                                            id="ativoUsuario{{ usuario_item.id }}"
+                                            {% if usuario_item.ativo %}checked{% endif %}
+                                            {% if usuario_item.id == current_user.id %}disabled{% endif %}
+                                        >
+
+                                        <label
+                                            class="form-check-label"
+                                            for="ativoUsuario{{ usuario_item.id }}"
+                                        >
+                                            Usuário ativo
+                                        </label>
+                                    </div>
+
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal"
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        Salvar alterações
+                                    </button>
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <div
+                    class="modal fade"
+                    id="modalSenhaUsuario{{ usuario_item.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog modal-dialog-centered">
+
+                        <div class="modal-content">
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'configuracoes.redefinir_senha_usuario',
+                                    usuario_id=usuario_item.id
+                                ) }}"
+                            >
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        Redefinir senha
+                                    </h5>
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Fechar"
+                                    ></button>
+                                </div>
+
+                                <div class="modal-body">
+
+                                    <p>
+                                        Nova senha para
+                                        <strong>{{ usuario_item.nome }}</strong>.
+                                    </p>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Nova senha
+                                        </label>
+
+                                        <input
+                                            type="password"
+                                            name="nova_senha"
+                                            class="form-control"
+                                            minlength="8"
+                                            required
+                                        >
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Confirmar senha
+                                        </label>
+
+                                        <input
+                                            type="password"
+                                            name="confirmar_senha"
+                                            class="form-control"
+                                            minlength="8"
+                                            required
+                                        >
+                                    </div>
+
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal"
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        Redefinir senha
+                                    </button>
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                {% if usuario_item.id != current_user.id %}
+                    <div
+                        class="modal fade"
+                        id="modalExcluirUsuario{{ usuario_item.id }}"
+                        tabindex="-1"
+                        aria-hidden="true"
+                    >
+                        <div class="modal-dialog modal-dialog-centered">
+
+                            <div class="modal-content">
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        Excluir usuário
+                                    </h5>
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Fechar"
+                                    ></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <p>
+                                        Deseja excluir
+                                        <strong>{{ usuario_item.nome }}</strong>?
+                                    </p>
+
+                                    <p class="text-muted mb-0">
+                                        Essa ação não poderá ser desfeita.
+                                    </p>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal"
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for(
+                                            'configuracoes.excluir_usuario',
+                                            usuario_id=usuario_item.id
+                                        ) }}"
+                                    >
+                                        <button
+                                            type="submit"
+                                            class="btn btn-danger"
+                                        >
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+
+        <div
+            id="nenhumResultadoUsuarios"
+            class="empty-state-card d-none mt-4"
+        >
+            <div class="empty-state-icon">
+                <i class="bi bi-search"></i>
+            </div>
+
+            <h2>Nenhum usuário encontrado</h2>
+
+            <p>
+                Nenhum usuário corresponde à pesquisa realizada.
+            </p>
+        </div>
+
+    {% endif %}
+
+</section>
+
+<div
+    class="modal fade"
+    id="modalCadastrarUsuario"
+    tabindex="-1"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+
+        <div class="modal-content">
+
+            <form
+                method="POST"
+                action="{{ url_for('configuracoes.cadastrar_usuario') }}"
+            >
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Cadastrar usuário
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Fechar"
+                    ></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">Nome</label>
+
+                        <input
+                            type="text"
+                            name="nome"
+                            class="form-control"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">E-mail</label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            class="form-control"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Usuário</label>
+
+                        <input
+                            type="text"
+                            name="usuario"
+                            class="form-control"
+                            placeholder="Exemplo: richard"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Perfil</label>
+
+                        <select
+                            name="perfil"
+                            class="form-select"
+                            required
+                        >
+                            <option value="administrador">
+                                Administrador
+                            </option>
+
+                            <option value="analista">
+                                Analista
+                            </option>
+
+                            <option value="estagiario">
+                                Estagiário
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Senha inicial</label>
+
+                        <input
+                            type="password"
+                            name="senha"
+                            class="form-control"
+                            minlength="8"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Confirmar senha
+                        </label>
+
+                        <input
+                            type="password"
+                            name="confirmar_senha"
+                            class="form-control"
+                            minlength="8"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Cadastrar
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const campoPesquisa = document.getElementById(
+        "pesquisaUsuarios"
+    );
+
+    const cards = document.querySelectorAll(
+        ".usuario-card"
+    );
+
+    const mensagemSemResultado = document.getElementById(
+        "nenhumResultadoUsuarios"
+    );
+
+    if (!campoPesquisa) {
+        return;
+    }
+
+    function normalizarTexto(texto) {
+        return texto
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    campoPesquisa.addEventListener("input", function () {
+        const pesquisa = normalizarTexto(
+            campoPesquisa.value.trim()
+        );
+
+        let quantidadeVisivel = 0;
+
+        cards.forEach(function (card) {
+            const conteudo = normalizarTexto(
+                [
+                    card.dataset.nome,
+                    card.dataset.usuario,
+                    card.dataset.email,
+                    card.dataset.perfil
+                ].join(" ")
+            );
+
+            const encontrou = conteudo.includes(
+                pesquisa
+            );
+
+            card.classList.toggle(
+                "d-none",
+                !encontrou
+            );
+
+            if (encontrou) {
+                quantidadeVisivel++;
+            }
+        });
+
+        if (mensagemSemResultado) {
+            mensagemSemResultado.classList.toggle(
+                "d-none",
+                quantidadeVisivel > 0
+            );
+        }
+    });
+});
+</script>
+
+{% endblock %}

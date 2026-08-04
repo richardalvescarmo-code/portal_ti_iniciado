@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+
+{% block title %}Pesquisa | Portal TI{% endblock %}
+
+{% block body %}
+
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">Portal TI</span>
+        <h1>Pesquisa</h1>
+
+        {% if termo %}
+            <p>
+                {{ total_resultados }}
+                {% if total_resultados == 1 %}
+                    resultado encontrado para “{{ termo }}”.
+                {% else %}
+                    resultados encontrados para “{{ termo }}”.
+                {% endif %}
+            </p>
+        {% else %}
+            <p>Digite um termo na barra de pesquisa do portal.</p>
+        {% endif %}
+    </div>
+</section>
+
+{% if termo and total_resultados > 0 %}
+
+    {% if resultados.softwares %}
+        <section class="content-section">
+            <div class="section-heading">
+                <div>
+                    <h2>Softwares</h2>
+                    <p>{{ resultados.softwares|length }} resultado(s)</p>
+                </div>
+            </div>
+
+            <div class="integration-grid">
+                {% for software in resultados.softwares %}
+                    <article class="integration-card">
+                        <div class="integration-card-top">
+                            <div class="integration-icon">
+                                <i class="bi {{ software.icone or 'bi-box-seam' }}"></i>
+                            </div>
+
+                            {% if software.ativo %}
+                                <span class="status-badge">
+                                    <span></span>
+                                    Ativo
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-planned">
+                                    <span></span>
+                                    Inativo
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="integration-card-body">
+                            <h3>{{ software.nome }}</h3>
+
+                            {% if software.categoria %}
+                                <small>
+                                    <i class="bi bi-tag"></i>
+                                    {{ software.categoria }}
+                                </small>
+                            {% endif %}
+
+                            <p>
+                                {{ software.descricao or "Nenhuma descrição informada." }}
+                            </p>
+                        </div>
+
+                        <div class="integration-card-footer">
+                            {% if software.ativo %}
+                                <a
+                                    href="{{ software.url_download }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Link para download
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            {% else %}
+                                <span>Indisponível</span>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {% if resultados.procedimentos %}
+        <section class="content-section mt-4">
+            <div class="section-heading">
+                <div>
+                    <h2>Procedimentos</h2>
+                    <p>{{ resultados.procedimentos|length }} resultado(s)</p>
+                </div>
+            </div>
+
+            <div class="integration-grid">
+                {% for procedimento in resultados.procedimentos %}
+                    <article class="integration-card">
+                        <div class="integration-card-top">
+                            <div class="integration-icon">
+                                <i class="bi bi-journal-text"></i>
+                            </div>
+
+                            {% if procedimento.ativo %}
+                                <span class="status-badge">
+                                    <span></span>
+                                    Ativo
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-planned">
+                                    <span></span>
+                                    Inativo
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="integration-card-body">
+                            <h3>{{ procedimento.titulo }}</h3>
+
+                            {% if procedimento.categoria %}
+                                <small>
+                                    <i class="bi bi-tag"></i>
+                                    {{ procedimento.categoria }}
+                                </small>
+                            {% endif %}
+
+                            <p>
+                                {{ procedimento.descricao or "Nenhuma descrição informada." }}
+                            </p>
+
+                            {% if procedimento.arquivo_nome %}
+                                <a
+                                    href="{{ url_for(
+                                        'static',
+                                        filename='uploads/procedimentos/' ~ procedimento.arquivo_nome
+                                    ) }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="d-inline-block mt-2"
+                                >
+                                    <i class="bi bi-paperclip"></i>
+                                    {{ procedimento.arquivo_original }}
+                                </a>
+                            {% endif %}
+                        </div>
+
+                        <div class="integration-card-footer">
+                            <a href="{{ url_for('procedimentos.procedimentos') }}">
+                                Abrir módulo
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {% if resultados.ferramentas %}
+        <section class="content-section mt-4">
+            <div class="section-heading">
+                <div>
+                    <h2>Ferramentas</h2>
+                    <p>{{ resultados.ferramentas|length }} resultado(s)</p>
+                </div>
+            </div>
+
+            <div class="integration-grid">
+                {% for ferramenta in resultados.ferramentas %}
+                    <article class="integration-card">
+                        <div class="integration-card-top">
+                            <div class="integration-icon">
+                                <i class="bi {{ ferramenta.icone or 'bi-tools' }}"></i>
+                            </div>
+
+                            {% if ferramenta.ativo %}
+                                <span class="status-badge">
+                                    <span></span>
+                                    Ativo
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-planned">
+                                    <span></span>
+                                    Inativo
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="integration-card-body">
+                            <h3>{{ ferramenta.nome }}</h3>
+
+                            {% if ferramenta.categoria %}
+                                <small>
+                                    <i class="bi bi-tag"></i>
+                                    {{ ferramenta.categoria }}
+                                </small>
+                            {% endif %}
+
+                            <p>
+                                {{ ferramenta.descricao or "Nenhuma descrição informada." }}
+                            </p>
+                        </div>
+
+                        <div class="integration-card-footer">
+                            {% if ferramenta.ativo %}
+                                <a
+                                    href="{{ ferramenta.url_acesso }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Acessar ferramenta
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            {% else %}
+                                <span>Indisponível</span>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {% if resultados.discos %}
+        <section class="content-section mt-4">
+            <div class="section-heading">
+                <div>
+                    <h2>Discos do cofre</h2>
+                    <p>{{ resultados.discos|length }} resultado(s)</p>
+                </div>
+            </div>
+
+            <div class="integration-grid">
+                {% for disco in resultados.discos %}
+                    <article class="integration-card">
+                        <div class="integration-card-top">
+                            <div class="integration-icon">
+                                <i class="bi bi-device-hdd"></i>
+                            </div>
+
+                            <span class="status-badge">
+                                <span></span>
+                                {{ disco.status }}
+                            </span>
+                        </div>
+
+                        <div class="integration-card-body">
+                            <h3>{{ disco.identificacao_maquina }}</h3>
+
+                            {% if disco.serial_disco %}
+                                <small class="d-block">
+                                    Serial: {{ disco.serial_disco }}
+                                </small>
+                            {% endif %}
+
+                            {% if disco.fornecedor %}
+                                <small class="d-block mt-1">
+                                    Fornecedor: {{ disco.fornecedor }}
+                                </small>
+                            {% endif %}
+
+                            <p class="mt-2">
+                                {{ disco.observacao or "Nenhuma observação informada." }}
+                            </p>
+                        </div>
+
+                        <div class="integration-card-footer">
+                            <a href="{{ url_for('inventario.inventario') }}">
+                                Abrir inventário
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+{% elif termo %}
+
+    <section class="empty-state-card">
+        <div class="empty-state-icon">
+            <i class="bi bi-search"></i>
+        </div>
+
+        <h2>Nenhum resultado encontrado</h2>
+
+        <p>
+            Não encontramos softwares, procedimentos, ferramentas ou discos
+            correspondentes a “{{ termo }}”.
+        </p>
+    </section>
+
+{% else %}
+
+    <section class="empty-state-card">
+        <div class="empty-state-icon">
+            <i class="bi bi-search"></i>
+        </div>
+
+        <h2>Pesquise no Portal TI</h2>
+
+        <p>
+            Utilize a barra superior para encontrar softwares, procedimentos,
+            ferramentas e discos armazenados no cofre.
+        </p>
+    </section>
+
+{% endif %}
+
+{% endblock %}

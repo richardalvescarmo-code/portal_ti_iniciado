@@ -1,0 +1,736 @@
+{% extends 'base.html' %}
+
+{% block title %}Ferramentas | Portal TI{% endblock %}
+
+{% block body %}
+
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">Portal TI</span>
+        <h1>Ferramentas</h1>
+        <p>Acesso rápido às principais ferramentas de suporte.</p>
+    </div>
+
+    <div class="heading-actions">
+        <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCadastrarFerramenta"
+        >
+            <i class="bi bi-plus-lg"></i>
+            Cadastrar ferramenta
+        </button>
+    </div>
+</section>
+
+{% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+        {% for categoria, mensagem in mensagens %}
+            <div
+                class="alert alert-{{ categoria }} alert-dismissible fade show"
+                role="alert"
+            >
+                {{ mensagem }}
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Fechar"
+                ></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<section class="content-section">
+
+    <div class="section-heading">
+        <div>
+            <h2>Ferramentas disponíveis</h2>
+            <p>Acesse os sistemas utilizados pela equipe de TI.</p>
+        </div>
+
+        <div style="width: 320px;">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+
+                <input
+                    type="search"
+                    id="pesquisaFerramentas"
+                    class="form-control"
+                    placeholder="Pesquisar nome ou categoria"
+                    autocomplete="off"
+                >
+            </div>
+        </div>
+    </div>
+
+    {% if ferramentas %}
+
+        <div class="integration-grid">
+
+            {% for ferramenta in ferramentas %}
+
+                <article
+                    class="integration-card ferramenta-card"
+                    data-nome="{{ ferramenta.nome }}"
+                    data-categoria="{{ ferramenta.categoria or '' }}"
+                >
+
+                    <div class="integration-card-top">
+
+                        <div class="integration-icon">
+                            <i class="bi {{ ferramenta.icone or 'bi-tools' }}"></i>
+                        </div>
+
+                        {% if ferramenta.ativo %}
+                            <span class="status-badge">
+                                <span></span>
+                                Ativo
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-planned">
+                                <span></span>
+                                Inativo
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="integration-card-body">
+
+                        <h3>{{ ferramenta.nome }}</h3>
+
+                        {% if ferramenta.categoria %}
+                            <small>
+                                <i class="bi bi-tag"></i>
+                                {{ ferramenta.categoria }}
+                            </small>
+                        {% endif %}
+
+                        <p>
+                            {{ ferramenta.descricao or
+                            "Nenhuma descrição informada." }}
+                        </p>
+
+                    </div>
+
+                    <div class="integration-card-footer">
+
+                        {% if ferramenta.ativo %}
+                            <a
+                                href="{{ ferramenta.url_acesso }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="btn btn-sm btn-primary"
+                            >
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                Acessar ferramenta
+                            </a>
+                        {% else %}
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-secondary"
+                                disabled
+                            >
+                                Indisponível
+                            </button>
+                        {% endif %}
+
+                        <div class="d-flex gap-2">
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEditarFerramenta{{ ferramenta.id }}"
+                                title="Editar"
+                            >
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalExcluirFerramenta{{ ferramenta.id }}"
+                                title="Excluir"
+                            >
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+                <!-- Editar ferramenta -->
+                <div
+                    class="modal fade"
+                    id="modalEditarFerramenta{{ ferramenta.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+
+                        <div class="modal-content">
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'ferramentas.editar_ferramenta',
+                                    ferramenta_id=ferramenta.id
+                                ) }}"
+                            >
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        Editar ferramenta
+                                    </h5>
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Fechar"
+                                    ></button>
+                                </div>
+
+                                <div class="modal-body">
+
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Nome
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="nome"
+                                            class="form-control"
+                                            value="{{ ferramenta.nome }}"
+                                            required
+                                        >
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Categoria
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="categoria"
+                                            class="form-control"
+                                            value="{{ ferramenta.categoria or '' }}"
+                                            placeholder="Exemplo: Monitoramento"
+                                        >
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Descrição
+                                        </label>
+
+                                        <textarea
+                                            name="descricao"
+                                            class="form-control"
+                                            rows="3"
+                                            placeholder="Descrição da ferramenta"
+                                        >{{ ferramenta.descricao or '' }}</textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Link de acesso
+                                        </label>
+
+                                        <input
+                                            type="url"
+                                            name="url_acesso"
+                                            class="form-control"
+                                            value="{{ ferramenta.url_acesso }}"
+                                            required
+                                        >
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label
+                                            for="iconeFerramenta{{ ferramenta.id }}"
+                                            class="form-label"
+                                        >
+                                            Ícone
+                                        </label>
+
+                                        <select
+                                            name="icone"
+                                            id="iconeFerramenta{{ ferramenta.id }}"
+                                            class="form-select"
+                                        >
+                                            <option
+                                                value="bi-tools"
+                                                {% if ferramenta.icone == "bi-tools" %}selected{% endif %}
+                                            >
+                                                Ferramenta
+                                            </option>
+
+                                            <option
+                                                value="bi-headset"
+                                                {% if ferramenta.icone == "bi-headset" %}selected{% endif %}
+                                            >
+                                                Suporte
+                                            </option>
+
+                                            <option
+                                                value="bi-shield-lock"
+                                                {% if ferramenta.icone == "bi-shield-lock" %}selected{% endif %}
+                                            >
+                                                Segurança
+                                            </option>
+
+                                            <option
+                                                value="bi-router"
+                                                {% if ferramenta.icone == "bi-router" %}selected{% endif %}
+                                            >
+                                                Rede
+                                            </option>
+
+                                            <option
+                                                value="bi-graph-up-arrow"
+                                                {% if ferramenta.icone == "bi-graph-up-arrow" %}selected{% endif %}
+                                            >
+                                                Monitoramento
+                                            </option>
+
+                                            <option
+                                                value="bi-cloud"
+                                                {% if ferramenta.icone == "bi-cloud" %}selected{% endif %}
+                                            >
+                                                Nuvem
+                                            </option>
+
+                                            <option
+                                                value="bi-microsoft"
+                                                {% if ferramenta.icone == "bi-microsoft" %}selected{% endif %}
+                                            >
+                                                Microsoft
+                                            </option>
+
+                                            <option
+                                                value="bi-database"
+                                                {% if ferramenta.icone == "bi-database" %}selected{% endif %}
+                                            >
+                                                Banco de dados
+                                            </option>
+
+                                            <option
+                                                value="bi-kanban"
+                                                {% if ferramenta.icone == "bi-kanban" %}selected{% endif %}
+                                            >
+                                                Tarefas
+                                            </option>
+
+                                            <option
+                                                value="bi-terminal"
+                                                {% if ferramenta.icone == "bi-terminal" %}selected{% endif %}
+                                            >
+                                                Terminal
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-check form-switch">
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="ativo"
+                                            id="ativoFerramenta{{ ferramenta.id }}"
+                                            {% if ferramenta.ativo %}checked{% endif %}
+                                        >
+
+                                        <label
+                                            class="form-check-label"
+                                            for="ativoFerramenta{{ ferramenta.id }}"
+                                        >
+                                            Ferramenta ativa
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="modal-footer">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal"
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        Salvar alterações
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Excluir ferramenta -->
+                <div
+                    class="modal fade"
+                    id="modalExcluirFerramenta{{ ferramenta.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog modal-dialog-centered">
+
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    Excluir ferramenta
+                                </h5>
+
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Fechar"
+                                ></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <p>
+                                    Deseja realmente excluir
+                                    <strong>{{ ferramenta.nome }}</strong>?
+                                </p>
+
+                                <p class="text-muted mb-0">
+                                    Essa ação não poderá ser desfeita.
+                                </p>
+                            </div>
+
+                            <div class="modal-footer">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal"
+                                >
+                                    Cancelar
+                                </button>
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'ferramentas.excluir_ferramenta',
+                                        ferramenta_id=ferramenta.id
+                                    ) }}"
+                                >
+                                    <button
+                                        type="submit"
+                                        class="btn btn-danger"
+                                    >
+                                        Excluir
+                                    </button>
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+        <div
+            id="nenhumResultadoFerramentas"
+            class="empty-state-card d-none mt-4"
+        >
+            <div class="empty-state-icon">
+                <i class="bi bi-search"></i>
+            </div>
+
+            <h2>Nenhuma ferramenta encontrada</h2>
+
+            <p>
+                Nenhuma ferramenta corresponde à pesquisa realizada.
+            </p>
+        </div>
+
+    {% else %}
+
+        <section class="empty-state-card">
+
+            <div class="empty-state-icon">
+                <i class="bi bi-tools"></i>
+            </div>
+
+            <h2>Nenhuma ferramenta cadastrada</h2>
+
+            <p>
+                Clique em “Cadastrar ferramenta” para adicionar o primeiro item.
+            </p>
+
+        </section>
+
+    {% endif %}
+
+</section>
+
+<!-- Cadastrar ferramenta -->
+<div
+    class="modal fade"
+    id="modalCadastrarFerramenta"
+    tabindex="-1"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+
+        <div class="modal-content">
+
+            <form
+                method="POST"
+                action="{{ url_for('ferramentas.cadastrar_ferramenta') }}"
+            >
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Cadastrar ferramenta
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Fechar"
+                    ></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Nome
+                        </label>
+
+                        <input
+                            type="text"
+                            name="nome"
+                            class="form-control"
+                            placeholder="Exemplo: Grafana"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Categoria
+                        </label>
+
+                        <input
+                            type="text"
+                            name="categoria"
+                            class="form-control"
+                            placeholder="Exemplo: Monitoramento"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Descrição
+                        </label>
+
+                        <textarea
+                            name="descricao"
+                            class="form-control"
+                            rows="3"
+                            placeholder="Descrição da ferramenta"
+                        ></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Link de acesso
+                        </label>
+
+                        <input
+                            type="url"
+                            name="url_acesso"
+                            class="form-control"
+                            placeholder="https://..."
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label
+                            for="iconeFerramenta"
+                            class="form-label"
+                        >
+                            Ícone
+                        </label>
+
+                        <select
+                            name="icone"
+                            id="iconeFerramenta"
+                            class="form-select"
+                        >
+                            <option value="bi-tools">
+                                Ferramenta
+                            </option>
+
+                            <option value="bi-headset">
+                                Suporte
+                            </option>
+
+                            <option value="bi-shield-lock">
+                                Segurança
+                            </option>
+
+                            <option value="bi-router">
+                                Rede
+                            </option>
+
+                            <option value="bi-graph-up-arrow">
+                                Monitoramento
+                            </option>
+
+                            <option value="bi-cloud">
+                                Nuvem
+                            </option>
+
+                            <option value="bi-microsoft">
+                                Microsoft
+                            </option>
+
+                            <option value="bi-database">
+                                Banco de dados
+                            </option>
+
+                            <option value="bi-kanban">
+                                Tarefas
+                            </option>
+
+                            <option value="bi-terminal">
+                                Terminal
+                            </option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Cadastrar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const campoPesquisa = document.getElementById(
+        "pesquisaFerramentas"
+    );
+
+    const cards = document.querySelectorAll(
+        ".ferramenta-card"
+    );
+
+    const mensagemSemResultado = document.getElementById(
+        "nenhumResultadoFerramentas"
+    );
+
+    if (!campoPesquisa) {
+        return;
+    }
+
+    function normalizarTexto(texto) {
+        return texto
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    campoPesquisa.addEventListener("input", function () {
+        const pesquisa = normalizarTexto(
+            campoPesquisa.value.trim()
+        );
+
+        let quantidadeVisivel = 0;
+
+        cards.forEach(function (card) {
+            const nome = normalizarTexto(
+                card.dataset.nome || ""
+            );
+
+            const categoria = normalizarTexto(
+                card.dataset.categoria || ""
+            );
+
+            const encontrou =
+                nome.includes(pesquisa) ||
+                categoria.includes(pesquisa);
+
+            card.classList.toggle(
+                "d-none",
+                !encontrou
+            );
+
+            if (encontrou) {
+                quantidadeVisivel++;
+            }
+        });
+
+        if (mensagemSemResultado) {
+            mensagemSemResultado.classList.toggle(
+                "d-none",
+                quantidadeVisivel > 0
+            );
+        }
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,776 @@
+{% extends 'base.html' %}
+
+{% block title %}Procedimentos | Portal TI{% endblock %}
+
+{% block body %}
+
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">Portal TI</span>
+        <h1>Procedimentos</h1>
+        <p>Base de procedimentos operacionais da equipe de TI.</p>
+    </div>
+
+    <div class="heading-actions">
+        <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCadastrarProcedimento"
+        >
+            <i class="bi bi-plus-lg"></i>
+            Cadastrar procedimento
+        </button>
+    </div>
+</section>
+
+{% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+        {% for categoria, mensagem in mensagens %}
+            <div
+                class="alert alert-{{ categoria }} alert-dismissible fade show"
+                role="alert"
+            >
+                {{ mensagem }}
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Fechar"
+                ></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<section class="content-section">
+<div class="section-heading">
+
+    <div>
+        <h2>Procedimentos disponíveis</h2>
+        <p>
+            Consulte os procedimentos cadastrados pela equipe de TI.
+        </p>
+    </div>
+
+    <div style="width: 320px;">
+
+        <div class="input-group">
+
+            <span class="input-group-text">
+                <i class="bi bi-search"></i>
+            </span>
+
+            <input
+                type="search"
+                id="pesquisaProcedimentos"
+                class="form-control"
+                placeholder="Pesquisar por título ou categoria"
+                autocomplete="off"
+            >
+
+        </div>
+
+    </div>
+
+</div>
+    {% if procedimentos %}
+
+        <div class="integration-grid">
+
+            {% for procedimento in procedimentos %}
+
+                <article
+    class="integration-card procedimento-card"
+    data-titulo="{{ procedimento.titulo }}"
+    data-categoria="{{ procedimento.categoria or '' }}"
+>
+
+                    <div class="integration-card-top">
+
+                        <div class="integration-icon">
+                            <i class="bi bi-journal-text"></i>
+                        </div>
+
+                        {% if procedimento.ativo %}
+                            <span class="status-badge">
+                                <span></span>
+                                Ativo
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-planned">
+                                <span></span>
+                                Inativo
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="integration-card-body">
+
+                        <h3>{{ procedimento.titulo }}</h3>
+
+                        {% if procedimento.categoria %}
+                            <small>
+                                <i class="bi bi-tag"></i>
+                                {{ procedimento.categoria }}
+                            </small>
+                        {% endif %}
+
+                        <p>
+                            {{ procedimento.descricao or
+                            "Nenhuma descrição informada." }}
+                        </p>
+{% if procedimento.arquivo_original %}
+    <a
+        href="{{ url_for(
+            'static',
+            filename='uploads/procedimentos/' ~ procedimento.arquivo_nome
+        ) }}"
+        target="_blank"
+        class="d-block mt-2 text-decoration-none"
+    >
+        <i class="bi bi-paperclip"></i>
+        {{ procedimento.arquivo_original }}
+    </a>
+{% endif %}
+
+                    </div>
+
+                    <div class="integration-card-footer">
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalVisualizarProcedimento{{ procedimento.id }}"
+                        >
+                            <i class="bi bi-eye"></i>
+                            Acessar procedimento
+                        </button>
+
+                        <div class="d-flex gap-2">
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEditarProcedimento{{ procedimento.id }}"
+                                title="Editar"
+                            >
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalExcluirProcedimento{{ procedimento.id }}"
+                                title="Excluir"
+                            >
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+                <!-- Visualizar procedimento -->
+                <div
+                    class="modal fade"
+                    id="modalVisualizarProcedimento{{ procedimento.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+
+                                <div>
+                                    <h5 class="modal-title">
+                                        {{ procedimento.titulo }}
+                                    </h5>
+
+                                    {% if procedimento.categoria %}
+                                        <small class="text-muted">
+                                            {{ procedimento.categoria }}
+                                        </small>
+                                    {% endif %}
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Fechar"
+                                ></button>
+
+                            </div>
+
+                            <div class="modal-body">
+
+                                {% if procedimento.descricao %}
+                                    <p class="text-muted">
+                                        {{ procedimento.descricao }}
+                                    </p>
+
+                                    <hr>
+                                {% endif %}
+
+                                <h6>Passo a passo</h6>
+
+                                <div style="white-space: pre-wrap;">
+                                    {{ procedimento.conteudo }}
+                                </div>
+
+                                {% if procedimento.arquivo_nome %}
+                                    <hr>
+
+                                    <h6>Anexo</h6>
+
+                                    <a
+                                        href="{{ url_for(
+                                            'static',
+                                            filename='uploads/procedimentos/' ~ procedimento.arquivo_nome
+                                        ) }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="btn btn-outline-primary"
+                                    >
+                                        <i class="bi bi-paperclip"></i>
+                                        Abrir {{ procedimento.arquivo_original }}
+                                    </a>
+                                {% endif %}
+
+                            </div>
+
+                            <div class="modal-footer">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal"
+                                >
+                                    Fechar
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Editar procedimento -->
+                <div
+                    class="modal fade"
+                    id="modalEditarProcedimento{{ procedimento.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+
+                        <div class="modal-content">
+
+                            <form
+                                method="POST"
+                                enctype="multipart/form-data"
+                                action="{{ url_for(
+                                    'procedimentos.editar_procedimento',
+                                    procedimento_id=procedimento.id
+                                ) }}"
+                            >
+
+                                <div class="modal-header">
+
+                                    <h5 class="modal-title">
+                                        Editar procedimento
+                                    </h5>
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Fechar"
+                                    ></button>
+
+                                </div>
+
+                                <div class="modal-body">
+
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Título
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="titulo"
+                                            class="form-control"
+                                            value="{{ procedimento.titulo }}"
+                                            required
+                                        >
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Categoria
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="categoria"
+                                            class="form-control"
+                                            value="{{ procedimento.categoria or '' }}"
+                                            placeholder="Exemplo: VPN"
+                                        >
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Descrição
+                                        </label>
+
+                                        <textarea
+                                            name="descricao"
+                                            class="form-control"
+                                            rows="2"
+                                            placeholder="Resumo do procedimento"
+                                        >{{ procedimento.descricao or '' }}</textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Passo a passo
+                                        </label>
+
+                                        <textarea
+                                            name="conteudo"
+                                            class="form-control"
+                                            rows="12"
+                                            required
+                                        >{{ procedimento.conteudo }}</textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">
+                                            Substituir anexo
+                                        </label>
+
+                                        <input
+                                            type="file"
+                                            name="arquivo"
+                                            class="form-control"
+                                            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip"
+                                        >
+
+                                        <div class="form-text">
+                                            Formatos permitidos: PDF, Word, Excel, imagens e ZIP.
+                                        </div>
+                                    </div>
+
+                                    {% if procedimento.arquivo_original %}
+                                        <div class="alert alert-light border">
+
+                                            <div class="mb-2">
+                                                <i class="bi bi-paperclip"></i>
+                                                Anexo atual:
+                                                <strong>
+                                                    {{ procedimento.arquivo_original }}
+                                                </strong>
+                                            </div>
+
+                                            <div class="form-check">
+                                                <input
+                                                    class="form-check-input"
+                                                    type="checkbox"
+                                                    name="remover_arquivo"
+                                                    id="removerArquivo{{ procedimento.id }}"
+                                                >
+
+                                                <label
+                                                    class="form-check-label"
+                                                    for="removerArquivo{{ procedimento.id }}"
+                                                >
+                                                    Remover o anexo atual
+                                                </label>
+                                            </div>
+
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="form-check form-switch">
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="ativo"
+                                            id="ativoProcedimento{{ procedimento.id }}"
+                                            {% if procedimento.ativo %}checked{% endif %}
+                                        >
+
+                                        <label
+                                            class="form-check-label"
+                                            for="ativoProcedimento{{ procedimento.id }}"
+                                        >
+                                            Procedimento ativo
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="modal-footer">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal"
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        Salvar alterações
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Excluir procedimento -->
+                <div
+                    class="modal fade"
+                    id="modalExcluirProcedimento{{ procedimento.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog modal-dialog-centered">
+
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+
+                                <h5 class="modal-title">
+                                    Excluir procedimento
+                                </h5>
+
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Fechar"
+                                ></button>
+
+                            </div>
+
+                            <div class="modal-body">
+
+                                <p>
+                                    Deseja realmente excluir
+                                    <strong>{{ procedimento.titulo }}</strong>?
+                                </p>
+
+                                {% if procedimento.arquivo_original %}
+                                    <p class="text-danger">
+                                        O arquivo anexado também será excluído.
+                                    </p>
+                                {% endif %}
+
+                                <p class="text-muted mb-0">
+                                    Essa ação não poderá ser desfeita.
+                                </p>
+
+                            </div>
+
+                            <div class="modal-footer">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal"
+                                >
+                                    Cancelar
+                                </button>
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'procedimentos.excluir_procedimento',
+                                        procedimento_id=procedimento.id
+                                    ) }}"
+                                >
+                                    <button
+                                        type="submit"
+                                        class="btn btn-danger"
+                                    >
+                                        Excluir
+                                    </button>
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            {% endfor %}
+
+        </div>
+<div
+    id="nenhumResultadoProcedimentos"
+    class="empty-state-card d-none mt-4"
+>
+
+    <div class="empty-state-icon">
+        <i class="bi bi-search"></i>
+    </div>
+
+    <h2>Nenhum procedimento encontrado</h2>
+
+    <p>
+        Nenhum procedimento corresponde à pesquisa realizada.
+    </p>
+
+</div>
+    {% else %}
+
+        <section class="empty-state-card">
+
+            <div class="empty-state-icon">
+                <i class="bi bi-journal-text"></i>
+            </div>
+
+            <h2>Nenhum procedimento cadastrado</h2>
+
+            <p>
+                Clique em “Cadastrar procedimento” para adicionar o primeiro item.
+            </p>
+
+        </section>
+
+    {% endif %}
+
+</section>
+
+<!-- Cadastrar procedimento -->
+<div
+    class="modal fade"
+    id="modalCadastrarProcedimento"
+    tabindex="-1"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+
+        <div class="modal-content">
+
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+                action="{{ url_for('procedimentos.cadastrar_procedimento') }}"
+            >
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Cadastrar procedimento
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Fechar"
+                    ></button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Título
+                        </label>
+
+                        <input
+                            type="text"
+                            name="titulo"
+                            class="form-control"
+                            placeholder="Exemplo: Configuração da VPN"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Categoria
+                        </label>
+
+                        <input
+                            type="text"
+                            name="categoria"
+                            class="form-control"
+                            placeholder="Exemplo: VPN"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Descrição
+                        </label>
+
+                        <textarea
+                            name="descricao"
+                            class="form-control"
+                            rows="2"
+                            placeholder="Resumo do procedimento"
+                        ></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Passo a passo
+                        </label>
+
+                        <textarea
+                            name="conteudo"
+                            class="form-control"
+                            rows="7"
+                            placeholder="1. Acesse...
+
+2. Clique em...
+
+3. Preencha..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Anexar arquivo
+                        </label>
+
+                        <input
+                            type="file"
+                            name="arquivo"
+                            class="form-control"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip"
+                        >
+
+                        <div class="form-text">
+                            Formatos permitidos: PDF, Word, Excel, imagens e ZIP.
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Cadastrar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const campoPesquisa = document.getElementById(
+        "pesquisaProcedimentos"
+    );
+
+    const cards = document.querySelectorAll(
+        ".procedimento-card"
+    );
+
+    const mensagemSemResultado = document.getElementById(
+        "nenhumResultadoProcedimentos"
+    );
+
+    if (!campoPesquisa) {
+        return;
+    }
+
+    function normalizarTexto(texto) {
+        return texto
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    campoPesquisa.addEventListener("input", function () {
+        const pesquisa = normalizarTexto(
+            campoPesquisa.value.trim()
+        );
+
+        let quantidadeVisivel = 0;
+
+        cards.forEach(function (card) {
+            const titulo = normalizarTexto(
+                card.dataset.titulo || ""
+            );
+
+            const categoria = normalizarTexto(
+                card.dataset.categoria || ""
+            );
+
+            const encontrou =
+                titulo.includes(pesquisa) ||
+                categoria.includes(pesquisa);
+
+            card.classList.toggle(
+                "d-none",
+                !encontrou
+            );
+
+            if (encontrou) {
+                quantidadeVisivel++;
+            }
+        });
+
+        if (mensagemSemResultado) {
+            mensagemSemResultado.classList.toggle(
+                "d-none",
+                quantidadeVisivel > 0
+            );
+        }
+    });
+});
+</script>
+
+{% endblock %}

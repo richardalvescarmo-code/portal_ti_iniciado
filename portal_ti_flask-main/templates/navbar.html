@@ -1,0 +1,102 @@
+<aside class="sidebar" id="sidebar">
+
+    <a class="brand" href="{{ url_for('dashboard.home') }}">
+        <img
+            src="{{ url_for('static', filename='logo/logohgtk.webp') }}"
+            alt="Hugtak"
+        >
+
+        <div>
+            <strong>Portal TI</strong>
+            <span>Central de Serviços</span>
+        </div>
+    </a>
+
+    <nav class="sidebar-nav">
+
+        <p class="nav-section-title">
+            Visão Geral
+        </p>
+
+        <a
+            class="nav-link-custom {{ 'active' if active_page == 'home' else '' }}"
+            href="{{ url_for('dashboard.home') }}"
+        >
+            <i class="bi bi-grid-1x2"></i>
+            <span>Dashboard</span>
+        </a>
+
+
+        <p class="nav-section-title">
+            Operação
+        </p>
+
+        <a
+            class="nav-link-custom {{ 'active' if active_page == 'softwares' else '' }}"
+            href="{{ url_for('softwares.softwares') }}"
+        >
+            <i class="bi bi-box-seam"></i>
+            <span>Softwares</span>
+        </a>
+
+        <a
+            class="nav-link-custom {{ 'active' if active_page == 'procedimentos' else '' }}"
+            href="{{ url_for('procedimentos.procedimentos') }}"
+        >
+            <i class="bi bi-journal-text"></i>
+            <span>Procedimentos</span>
+        </a>
+
+        <a
+            class="nav-link-custom {{ 'active' if active_page == 'ferramentas' else '' }}"
+            href="{{ url_for('ferramentas.ferramentas') }}"
+        >
+            <i class="bi bi-tools"></i>
+            <span>Ferramentas</span>
+        </a>
+
+        <a
+            class="nav-link-custom {{ 'active' if active_page == 'inventario' else '' }}"
+            href="{{ url_for('inventario.inventario') }}"
+        >
+            <i class="bi bi-pc-display"></i>
+            <span>Inventário</span>
+        </a>
+
+
+        {% if current_user.perfil|lower == "administrador" %}
+
+            <p class="nav-section-title">
+                Administração
+            </p>
+
+            <a
+                class="nav-link-custom {{ 'active' if active_page == 'configuracoes' else '' }}"
+                href="{{ url_for('configuracoes.configuracoes') }}"
+            >
+                <i class="bi bi-gear"></i>
+                <span>Configurações</span>
+            </a>
+
+            <a
+                class="nav-link-custom {{ 'active' if active_page == 'auditoria' else '' }}"
+                href="{{ url_for('auditoria.auditoria') }}"
+            >
+                <i class="bi bi-clock-history"></i>
+                <span>Logs de Auditoria</span>
+            </a>
+
+        {% endif %}
+
+    </nav>
+
+    <div class="sidebar-footer">
+
+        <div class="environment-badge">
+            <span></span>
+            Ambiente de Desenvolvimento
+        </div>
+
+    </div>
+
+</aside>

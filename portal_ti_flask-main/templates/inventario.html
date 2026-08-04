@@ -1,0 +1,902 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventário | Portal TI{% endblock %}
+
+{% block body %}
+
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">Portal TI</span>
+        <h1>Inventário</h1>
+        <p>Controle de filtros de privacidade e discos armazenados no cofre.</p>
+    </div>
+
+    <div class="heading-actions">
+        <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCadastrarDisco"
+        >
+            <i class="bi bi-plus-lg"></i>
+            Adicionar disco ao cofre
+        </button>
+    </div>
+</section>
+
+{% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+        {% for categoria, mensagem in mensagens %}
+            <div
+                class="alert alert-{{ categoria }} alert-dismissible fade show"
+                role="alert"
+            >
+                {{ mensagem }}
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Fechar"
+                ></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<section class="content-section">
+
+    <div class="section-heading">
+        <div>
+            <h2>Filtros de privacidade</h2>
+            <p>Quantidade disponível para notebooks e desktops.</p>
+        </div>
+    </div>
+
+    <div class="filtros-privacidade-grid">
+
+        {% for filtro in filtros %}
+
+            <article
+                class="filtro-privacidade-card
+                {% if filtro.quantidade <= 4 %}
+                    filtro-estoque-baixo
+                {% elif filtro.quantidade <= 10 %}
+                    filtro-estoque-medio
+                {% else %}
+                    filtro-estoque-bom
+                {% endif %}"
+            >
+
+                <div class="filtro-card-top">
+
+                    <div class="metric-icon">
+                        {% if filtro.tipo == "Notebook" %}
+                            <i class="bi bi-laptop"></i>
+                        {% else %}
+                            <i class="bi bi-pc-display"></i>
+                        {% endif %}
+                    </div>
+
+                    <span class="filtro-status-indicador">
+                        {% if filtro.quantidade <= 4 %}
+                            Estoque baixo
+                        {% elif filtro.quantidade <= 10 %}
+                            Atenção
+                        {% else %}
+                            Estoque adequado
+                        {% endif %}
+                    </span>
+
+                </div>
+
+                <div class="filtro-card-body">
+
+                    <span class="filtro-titulo">
+                        Filtro para {{ filtro.tipo }}
+                    </span>
+
+                    <strong class="filtro-quantidade">
+                        {{ filtro.quantidade }}
+                    </strong>
+
+                    <small>Disponíveis</small>
+
+                    {% if filtro.observacao %}
+                        <p class="filtro-observacao">
+                            {{ filtro.observacao }}
+                        </p>
+                    {% endif %}
+
+                </div>
+
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary w-100"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalEditarFiltro{{ filtro.id }}"
+                >
+                    <i class="bi bi-pencil"></i>
+                    Atualizar estoque
+                </button>
+
+            </article>
+
+            <div
+                class="modal fade"
+                id="modalEditarFiltro{{ filtro.id }}"
+                tabindex="-1"
+                aria-hidden="true"
+            >
+                <div class="modal-dialog modal-dialog-centered">
+
+                    <div class="modal-content">
+
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'inventario.editar_filtro',
+                                filtro_id=filtro.id
+                            ) }}"
+                        >
+
+                            <div class="modal-header">
+
+                                <h5 class="modal-title">
+                                    Atualizar filtro de {{ filtro.tipo }}
+                                </h5>
+
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Fechar"
+                                ></button>
+
+                            </div>
+
+                            <div class="modal-body">
+
+                                <div class="mb-3">
+
+                                    <label class="form-label">
+                                        Quantidade disponível
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        name="quantidade"
+                                        class="form-control"
+                                        min="0"
+                                        value="{{ filtro.quantidade }}"
+                                        required
+                                    >
+
+                                </div>
+
+                                <div class="mb-3">
+
+                                    <label class="form-label">
+                                        Observação
+                                    </label>
+
+                                    <textarea
+                                        name="observacao"
+                                        class="form-control"
+                                        rows="3"
+                                        placeholder="Observação opcional"
+                                    >{{ filtro.observacao or '' }}</textarea>
+
+                                </div>
+
+                            </div>
+
+                            <div class="modal-footer">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal"
+                                >
+                                    Cancelar
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+                                    Salvar
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+<section class="content-section mt-4">
+
+    <div class="section-heading">
+
+        <div>
+            <h2>Cofre de discos</h2>
+
+            <p>
+                Discos removidos de máquinas enviadas para reparo externo.
+            </p>
+
+            <span class="cofre-contador">
+                <i class="bi bi-safe"></i>
+
+                {{ discos|length }}
+
+                {% if discos|length == 1 %}
+                    disco cadastrado
+                {% else %}
+                    discos cadastrados
+                {% endif %}
+            </span>
+        </div>
+
+        <div style="width: 320px;">
+
+            <div class="input-group">
+
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+
+                <input
+                    type="search"
+                    id="pesquisaDiscos"
+                    class="form-control"
+                    placeholder="Pesquisar máquina, serial ou fornecedor"
+                    autocomplete="off"
+                >
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% if discos %}
+
+        <div class="integration-grid">
+
+            {% for disco in discos %}
+
+                <article
+                    class="integration-card disco-card"
+                    data-maquina="{{ disco.identificacao_maquina }}"
+                    data-serial="{{ disco.serial_disco or '' }}"
+                    data-fornecedor="{{ disco.fornecedor or '' }}"
+                    data-status="{{ disco.status or '' }}"
+                >
+
+                    <div class="integration-card-top">
+
+                        <div class="integration-icon">
+                            <i class="bi bi-device-hdd"></i>
+                        </div>
+
+                        <span class="status-badge">
+                            <span></span>
+                            {{ disco.status }}
+                        </span>
+
+                    </div>
+
+                    <div class="integration-card-body">
+
+                        <h3>{{ disco.identificacao_maquina }}</h3>
+
+                        {% if disco.serial_disco %}
+                            <small class="d-block">
+                                <i class="bi bi-upc-scan"></i>
+                                Serial: {{ disco.serial_disco }}
+                            </small>
+                        {% endif %}
+
+                        {% if disco.fornecedor %}
+                            <small class="d-block mt-1">
+                                <i class="bi bi-building"></i>
+                                Fornecedor: {{ disco.fornecedor }}
+                            </small>
+                        {% endif %}
+
+                        {% if disco.data_envio %}
+                            <small class="d-block mt-1">
+                                <i class="bi bi-calendar-event"></i>
+                                Enviado em:
+                                {{ disco.data_envio.strftime('%d/%m/%Y') }}
+                            </small>
+                        {% endif %}
+
+                        <p class="mt-2">
+                            {{ disco.observacao or
+                            "Nenhuma observação informada." }}
+                        </p>
+
+                    </div>
+
+                    <div class="integration-card-footer">
+
+                        <span>
+                            <i class="bi bi-safe"></i>
+                            Armazenado no cofre
+                        </span>
+
+                        <div class="d-flex gap-2">
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEditarDisco{{ disco.id }}"
+                                title="Editar"
+                            >
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalExcluirDisco{{ disco.id }}"
+                                title="Excluir"
+                            >
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+                <div
+                    class="modal fade"
+                    id="modalEditarDisco{{ disco.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+
+                        <div class="modal-content">
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'inventario.editar_disco',
+                                    disco_id=disco.id
+                                ) }}"
+                            >
+
+                                <div class="modal-header">
+
+                                    <h5 class="modal-title">
+                                        Editar disco
+                                    </h5>
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Fechar"
+                                    ></button>
+
+                                </div>
+
+                                <div class="modal-body">
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Identificação da máquina
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="identificacao_maquina"
+                                            class="form-control"
+                                            value="{{ disco.identificacao_maquina }}"
+                                            required
+                                        >
+
+                                    </div>
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Serial do disco
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="serial_disco"
+                                            class="form-control"
+                                            value="{{ disco.serial_disco or '' }}"
+                                        >
+
+                                    </div>
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Fornecedor
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="fornecedor"
+                                            class="form-control"
+                                            value="{{ disco.fornecedor or '' }}"
+                                        >
+
+                                    </div>
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Data de envio
+                                        </label>
+
+                                        <input
+                                            type="date"
+                                            name="data_envio"
+                                            class="form-control"
+                                            value="{{ disco.data_envio.strftime('%Y-%m-%d') if disco.data_envio else '' }}"
+                                        >
+
+                                    </div>
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Status
+                                        </label>
+
+                                        <select
+                                            name="status"
+                                            class="form-select"
+                                        >
+                                            <option
+                                                value="Armazenado"
+                                                {% if disco.status == "Armazenado" %}selected{% endif %}
+                                            >
+                                                Armazenado
+                                            </option>
+
+                                            <option
+                                                value="Aguardando retorno"
+                                                {% if disco.status == "Aguardando retorno" %}selected{% endif %}
+                                            >
+                                                Aguardando retorno
+                                            </option>
+
+                                            <option
+                                                value="Devolvido"
+                                                {% if disco.status == "Devolvido" %}selected{% endif %}
+                                            >
+                                                Devolvido
+                                            </option>
+
+                                            <option
+                                                value="Descartado"
+                                                {% if disco.status == "Descartado" %}selected{% endif %}
+                                            >
+                                                Descartado
+                                            </option>
+                                        </select>
+
+                                    </div>
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Observação
+                                        </label>
+
+                                        <textarea
+                                            name="observacao"
+                                            class="form-control"
+                                            rows="3"
+                                        >{{ disco.observacao or '' }}</textarea>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="modal-footer">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal"
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        Salvar alterações
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <div
+                    class="modal fade"
+                    id="modalExcluirDisco{{ disco.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog modal-dialog-centered">
+
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+
+                                <h5 class="modal-title">
+                                    Excluir disco
+                                </h5>
+
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Fechar"
+                                ></button>
+
+                            </div>
+
+                            <div class="modal-body">
+
+                                <p>
+                                    Deseja excluir o disco da máquina
+                                    <strong>{{ disco.identificacao_maquina }}</strong>?
+                                </p>
+
+                                <p class="text-muted mb-0">
+                                    Essa ação não poderá ser desfeita.
+                                </p>
+
+                            </div>
+
+                            <div class="modal-footer">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal"
+                                >
+                                    Cancelar
+                                </button>
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'inventario.excluir_disco',
+                                        disco_id=disco.id
+                                    ) }}"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-danger"
+                                    >
+                                        Excluir
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+        <div
+            id="nenhumResultadoDiscos"
+            class="empty-state-card d-none mt-4"
+        >
+
+            <div class="empty-state-icon">
+                <i class="bi bi-search"></i>
+            </div>
+
+            <h2>Nenhum disco encontrado</h2>
+
+            <p>
+                Nenhum disco corresponde à pesquisa realizada.
+            </p>
+
+        </div>
+
+    {% else %}
+
+        <section class="empty-state-card">
+
+            <div class="empty-state-icon">
+                <i class="bi bi-device-hdd"></i>
+            </div>
+
+            <h2>Nenhum disco cadastrado</h2>
+
+            <p>
+                Clique em “Adicionar disco ao cofre” para cadastrar o primeiro.
+            </p>
+
+        </section>
+
+    {% endif %}
+
+</section>
+
+<div
+    class="modal fade"
+    id="modalCadastrarDisco"
+    tabindex="-1"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+
+        <div class="modal-content">
+
+            <form
+                method="POST"
+                action="{{ url_for('inventario.cadastrar_disco') }}"
+            >
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Adicionar disco ao cofre
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Fechar"
+                    ></button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Identificação da máquina
+                        </label>
+
+                        <input
+                            type="text"
+                            name="identificacao_maquina"
+                            class="form-control"
+                            placeholder="Exemplo: NB1249"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Serial do disco
+                        </label>
+
+                        <input
+                            type="text"
+                            name="serial_disco"
+                            class="form-control"
+                            placeholder="Serial opcional"
+                        >
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Fornecedor
+                        </label>
+
+                        <input
+                            type="text"
+                            name="fornecedor"
+                            class="form-control"
+                            placeholder="Exemplo: Dell"
+                        >
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Data de envio
+                        </label>
+
+                        <input
+                            type="date"
+                            name="data_envio"
+                            class="form-control"
+                        >
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Status
+                        </label>
+
+                        <select
+                            name="status"
+                            class="form-select"
+                        >
+                            <option value="Armazenado">
+                                Armazenado
+                            </option>
+
+                            <option value="Aguardando retorno">
+                                Aguardando retorno
+                            </option>
+
+                            <option value="Devolvido">
+                                Devolvido
+                            </option>
+
+                            <option value="Descartado">
+                                Descartado
+                            </option>
+                        </select>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Observação
+                        </label>
+
+                        <textarea
+                            name="observacao"
+                            class="form-control"
+                            rows="3"
+                            placeholder="Informações adicionais"
+                        ></textarea>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Cadastrar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const campoPesquisa = document.getElementById(
+        "pesquisaDiscos"
+    );
+
+    const cards = document.querySelectorAll(
+        ".disco-card"
+    );
+
+    const mensagemSemResultado = document.getElementById(
+        "nenhumResultadoDiscos"
+    );
+
+    if (!campoPesquisa) {
+        return;
+    }
+
+    function normalizarTexto(texto) {
+        return texto
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    campoPesquisa.addEventListener("input", function () {
+        const pesquisa = normalizarTexto(
+            campoPesquisa.value.trim()
+        );
+
+        let quantidadeVisivel = 0;
+
+        cards.forEach(function (card) {
+            const maquina = normalizarTexto(
+                card.dataset.maquina || ""
+            );
+
+            const serial = normalizarTexto(
+                card.dataset.serial || ""
+            );
+
+            const fornecedor = normalizarTexto(
+                card.dataset.fornecedor || ""
+            );
+
+            const status = normalizarTexto(
+                card.dataset.status || ""
+            );
+
+            const encontrou =
+                maquina.includes(pesquisa) ||
+                serial.includes(pesquisa) ||
+                fornecedor.includes(pesquisa) ||
+                status.includes(pesquisa);
+
+            card.classList.toggle(
+                "d-none",
+                !encontrou
+            );
+
+            if (encontrou) {
+                quantidadeVisivel++;
+            }
+        });
+
+        if (mensagemSemResultado) {
+            mensagemSemResultado.classList.toggle(
+                "d-none",
+                quantidadeVisivel > 0
+            );
+        }
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+
+{% block title %}Logs de Auditoria | Portal TI{% endblock %}
+
+{% block body %}
+
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">Administração</span>
+        <h1>Logs de Auditoria</h1>
+        <p>
+            Consulte as ações realizadas pelos usuários no Portal TI.
+        </p>
+    </div>
+</section>
+
+<section class="auditoria-resumo-grid">
+
+    <article class="auditoria-resumo-card">
+        <div class="auditoria-resumo-icon">
+            <i class="bi bi-clock-history"></i>
+        </div>
+
+        <div>
+            <span>Total de registros</span>
+            <strong>{{ logs|length }}</strong>
+            <small>Eventos de auditoria</small>
+        </div>
+    </article>
+
+    <article class="auditoria-ultima-card">
+
+        <div class="auditoria-ultima-topo">
+            <div>
+                <span>Última atividade</span>
+
+                {% if logs %}
+                    <strong>{{ logs[0].usuario }}</strong>
+                {% else %}
+                    <strong>Nenhuma atividade</strong>
+                {% endif %}
+            </div>
+
+            <div class="auditoria-resumo-icon">
+                <i class="bi bi-activity"></i>
+            </div>
+        </div>
+
+        {% if logs %}
+            <div class="auditoria-ultima-detalhes">
+
+                <span
+                    class="auditoria-acao auditoria-acao-{{ logs[0].acao|lower }}"
+                >
+                    {{ logs[0].acao }}
+                </span>
+
+                <span>
+                    {{ logs[0].modulo }}
+                </span>
+
+                <strong>
+                    {{ logs[0].registro }}
+                </strong>
+
+                <small>
+                    <i class="bi bi-clock"></i>
+                    {{ logs[0].data.strftime('%d/%m/%Y %H:%M') }}
+                </small>
+
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">
+                As atividades realizadas no portal aparecerão aqui.
+            </p>
+        {% endif %}
+
+    </article>
+
+</section>
+
+<section class="content-section">
+
+    <div class="section-heading auditoria-section-heading">
+
+        <div>
+            <h2>Registros do sistema</h2>
+
+            <p id="contadorAuditoria">
+                Exibindo {{ logs|length }}
+                {% if logs|length == 1 %}
+                    registro.
+                {% else %}
+                    registros.
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="auditoria-pesquisa">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+
+                <input
+                    type="search"
+                    id="pesquisaAuditoria"
+                    class="form-control"
+                    placeholder="Pesquisar usuário, ação, módulo ou registro"
+                    autocomplete="off"
+                >
+            </div>
+        </div>
+
+    </div>
+
+    {% if logs %}
+
+        <div class="auditoria-tabela-card">
+
+            <div class="table-responsive">
+
+                <table class="table auditoria-table align-middle mb-0">
+
+                    <thead>
+                        <tr>
+                            <th>Data e hora</th>
+                            <th>Usuário</th>
+                            <th>Ação</th>
+                            <th>Módulo</th>
+                            <th>Registro</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for log in logs %}
+
+                            <tr
+                                class="linha-auditoria"
+                                data-usuario="{{ log.usuario }}"
+                                data-acao="{{ log.acao }}"
+                                data-modulo="{{ log.modulo }}"
+                                data-registro="{{ log.registro }}"
+                            >
+
+                                <td class="auditoria-data">
+                                    <i class="bi bi-clock"></i>
+
+                                    {{ log.data.strftime('%d/%m/%Y %H:%M') }}
+                                </td>
+
+                                <td>
+                                    <strong class="auditoria-usuario">
+                                        {{ log.usuario }}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    <span
+                                        class="auditoria-acao auditoria-acao-{{ log.acao|lower }}"
+                                    >
+                                        {{ log.acao }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="auditoria-modulo">
+                                        {{ log.modulo }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <strong class="auditoria-registro">
+                                        {{ log.registro }}
+                                    </strong>
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <section
+            id="nenhumResultadoAuditoria"
+            class="empty-state-card d-none mt-4"
+        >
+            <div class="empty-state-icon">
+                <i class="bi bi-search"></i>
+            </div>
+
+            <h2>Nenhum registro encontrado</h2>
+
+            <p>
+                Nenhum log corresponde à pesquisa realizada.
+            </p>
+        </section>
+
+    {% else %}
+
+        <section class="empty-state-card">
+
+            <div class="empty-state-icon">
+                <i class="bi bi-clock-history"></i>
+            </div>
+
+            <h2>Nenhum log registrado</h2>
+
+            <p>
+                As ações realizadas no Portal TI aparecerão aqui.
+            </p>
+
+        </section>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const campoPesquisa = document.getElementById(
+        "pesquisaAuditoria"
+    );
+
+    const linhas = document.querySelectorAll(
+        ".linha-auditoria"
+    );
+
+    const mensagemSemResultado = document.getElementById(
+        "nenhumResultadoAuditoria"
+    );
+
+    const contadorAuditoria = document.getElementById(
+        "contadorAuditoria"
+    );
+
+    if (!campoPesquisa) {
+        return;
+    }
+
+    function normalizarTexto(texto) {
+        return (texto || "")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function atualizarContador(quantidade) {
+        if (!contadorAuditoria) {
+            return;
+        }
+
+        const descricao = quantidade === 1
+            ? "registro."
+            : "registros.";
+
+        contadorAuditoria.textContent =
+            `Exibindo ${quantidade} ${descricao}`;
+    }
+
+    campoPesquisa.addEventListener("input", function () {
+        const pesquisa = normalizarTexto(
+            campoPesquisa.value.trim()
+        );
+
+        let quantidadeVisivel = 0;
+
+        linhas.forEach(function (linha) {
+            const conteudo = normalizarTexto(
+                [
+                    linha.dataset.usuario,
+                    linha.dataset.acao,
+                    linha.dataset.modulo,
+                    linha.dataset.registro
+                ].join(" ")
+            );
+
+            const encontrou = conteudo.includes(
+                pesquisa
+            );
+
+            linha.classList.toggle(
+                "d-none",
+                !encontrou
+            );
+
+            if (encontrou) {
+                quantidadeVisivel++;
+            }
+        });
+
+        atualizarContador(
+            quantidadeVisivel
+        );
+
+        if (mensagemSemResultado) {
+            mensagemSemResultado.classList.toggle(
+                "d-none",
+                quantidadeVisivel > 0
+            );
+        }
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,713 @@
+{% extends 'base.html' %}
+
+{% block title %}Softwares | Portal TI{% endblock %}
+
+{% block body %}
+
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">Portal TI</span>
+        <h1>Softwares</h1>
+        <p>Catálogo de aplicativos homologados e links oficiais.</p>
+    </div>
+
+    <div class="heading-actions">
+        <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCadastrarSoftware"
+        >
+            <i class="bi bi-plus-lg"></i>
+            Cadastrar software
+        </button>
+    </div>
+</section>
+
+
+{% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+        {% for categoria, mensagem in mensagens %}
+            <div
+                class="alert alert-{{ categoria }} alert-dismissible fade show"
+                role="alert"
+            >
+                {{ mensagem }}
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Fechar"
+                ></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+
+<section class="content-section">
+
+    <div class="section-heading">
+        <div>
+            <h2>Aplicativos disponíveis</h2>
+            <p>
+                Utilize somente os links oficiais cadastrados pela equipe de TI.
+            </p>
+        </div>
+    </div>
+
+
+    {% if softwares %}
+
+        <div class="integration-grid">
+
+            {% for software in softwares %}
+
+                <article class="integration-card">
+
+                    <div class="integration-card-top">
+
+                        <div class="integration-icon">
+                            <i class="bi {{ software.icone or 'bi-box-seam' }}"></i>
+                        </div>
+
+                        {% if software.ativo %}
+                            <span class="status-badge">
+                                <span></span>
+                                Ativo
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-planned">
+                                <span></span>
+                                Inativo
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="integration-card-body">
+
+                        <h3>{{ software.nome }}</h3>
+
+                        {% if software.categoria %}
+                            <small>
+                                <i class="bi bi-tag"></i>
+                                {{ software.categoria }}
+                            </small>
+                        {% endif %}
+
+                        <p>
+                            {{ software.descricao or
+                            "Nenhuma descrição informada." }}
+                        </p>
+
+                    </div>
+
+
+                    <div class="integration-card-footer">
+
+                        {% if software.ativo %}
+
+                            <a
+                                href="{{ software.url_download }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="btn btn-sm btn-primary"
+                            >
+                                <i class="bi bi-download"></i>
+                                Link para download
+                            </a>
+
+                        {% else %}
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-secondary"
+                                disabled
+                            >
+                                Indisponível
+                            </button>
+
+                        {% endif %}
+
+
+                        <div class="d-flex gap-2">
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEditarSoftware{{ software.id }}"
+                            >
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalExcluirSoftware{{ software.id }}"
+                            >
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <div
+                    class="modal fade"
+                    id="modalEditarSoftware{{ software.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+
+                    <div class="modal-dialog modal-dialog-centered">
+
+                        <div class="modal-content">
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'softwares.editar_software',
+                                    software_id=software.id
+                                ) }}"
+                            >
+
+                                <div class="modal-header">
+
+                                    <h5 class="modal-title">
+                                        Editar software
+                                    </h5>
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Fechar"
+                                    ></button>
+
+                                </div>
+
+
+                                <div class="modal-body">
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Nome
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="nome"
+                                            class="form-control"
+                                            value="{{ software.nome }}"
+                                            required
+                                        >
+
+                                    </div>
+
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Categoria
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="categoria"
+                                            class="form-control"
+                                            value="{{ software.categoria or '' }}"
+                                            placeholder="Exemplo: Navegador"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="mb-3">
+
+                                        <label
+                                            for="icone{{ software.id }}"
+                                            class="form-label"
+                                        >
+                                            Ícone
+                                        </label>
+
+                                        <select
+                                            name="icone"
+                                            id="icone{{ software.id }}"
+                                            class="form-select"
+                                        >
+                                            <option
+                                                value="bi-box-seam"
+                                                {% if software.icone == "bi-box-seam" %}selected{% endif %}
+                                            >
+                                                Software padrão
+                                            </option>
+
+                                            <option
+                                                value="bi-browser-chrome"
+                                                {% if software.icone == "bi-browser-chrome" %}selected{% endif %}
+                                            >
+                                                Google Chrome
+                                            </option>
+
+                                            <option
+                                                value="bi-browser-firefox"
+                                                {% if software.icone == "bi-browser-firefox" %}selected{% endif %}
+                                            >
+                                                Mozilla Firefox
+                                            </option>
+
+                                            <option
+                                                value="bi-microsoft"
+                                                {% if software.icone == "bi-microsoft" %}selected{% endif %}
+                                            >
+                                                Microsoft
+                                            </option>
+
+                                            <option
+                                                value="bi-cloud"
+                                                {% if software.icone == "bi-cloud" %}selected{% endif %}
+                                            >
+                                                Nuvem / OneDrive
+                                            </option>
+
+                                            <option
+                                                value="bi-database"
+                                                {% if software.icone == "bi-database" %}selected{% endif %}
+                                            >
+                                                Banco de dados
+                                            </option>
+
+                                            <option
+                                                value="bi-code-slash"
+                                                {% if software.icone == "bi-code-slash" %}selected{% endif %}
+                                            >
+                                                Desenvolvimento
+                                            </option>
+
+                                            <option
+                                                value="bi-file-earmark-pdf"
+                                                {% if software.icone == "bi-file-earmark-pdf" %}selected{% endif %}
+                                            >
+                                                PDF
+                                            </option>
+
+                                            <option
+                                                value="bi-shield-check"
+                                                {% if software.icone == "bi-shield-check" %}selected{% endif %}
+                                            >
+                                                Segurança
+                                            </option>
+
+                                            <option
+                                                value="bi-tools"
+                                                {% if software.icone == "bi-tools" %}selected{% endif %}
+                                            >
+                                                Ferramenta
+                                            </option>
+
+                                            <option
+                                                value="bi-hdd"
+                                                {% if software.icone == "bi-hdd" %}selected{% endif %}
+                                            >
+                                                Armazenamento
+                                            </option>
+
+                                            <option
+                                                value="bi-camera-video"
+                                                {% if software.icone == "bi-camera-video" %}selected{% endif %}
+                                            >
+                                                Videoconferência
+                                            </option>
+                                        </select>
+
+                                    </div>
+
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Descrição
+                                        </label>
+
+                                        <textarea
+                                            name="descricao"
+                                            class="form-control"
+                                            rows="3"
+                                        >{{ software.descricao or '' }}</textarea>
+
+                                    </div>
+
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Link para download
+                                        </label>
+
+                                        <input
+                                            type="url"
+                                            name="url_download"
+                                            class="form-control"
+                                            value="{{ software.url_download }}"
+                                            required
+                                        >
+
+                                    </div>
+
+
+                                    <div class="form-check form-switch">
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="ativo"
+                                            id="ativo{{ software.id }}"
+                                            {% if software.ativo %}checked{% endif %}
+                                        >
+
+                                        <label
+                                            class="form-check-label"
+                                            for="ativo{{ software.id }}"
+                                        >
+                                            Software ativo
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="modal-footer">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal"
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        Salvar alterações
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="modal fade"
+                    id="modalExcluirSoftware{{ software.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+
+                    <div class="modal-dialog modal-dialog-centered">
+
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+
+                                <h5 class="modal-title">
+                                    Excluir software
+                                </h5>
+
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Fechar"
+                                ></button>
+
+                            </div>
+
+
+                            <div class="modal-body">
+
+                                <p>
+                                    Deseja realmente excluir
+                                    <strong>{{ software.nome }}</strong>?
+                                </p>
+
+                                <p class="text-muted mb-0">
+                                    Essa ação não poderá ser desfeita.
+                                </p>
+
+                            </div>
+
+
+                            <div class="modal-footer">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal"
+                                >
+                                    Cancelar
+                                </button>
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'softwares.excluir_software',
+                                        software_id=software.id
+                                    ) }}"
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-danger"
+                                    >
+                                        Excluir
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <section class="empty-state-card">
+
+            <div class="empty-state-icon">
+                <i class="bi bi-box-seam"></i>
+            </div>
+
+            <h2>Nenhum software cadastrado</h2>
+
+            <p>
+                Clique em “Cadastrar software” para adicionar o primeiro item.
+            </p>
+
+        </section>
+
+    {% endif %}
+
+</section>
+
+
+<div
+    class="modal fade"
+    id="modalCadastrarSoftware"
+    tabindex="-1"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <form
+                method="POST"
+                action="{{ url_for('softwares.cadastrar_software') }}"
+            >
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Cadastrar software
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Fechar"
+                    ></button>
+
+                </div>
+
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Nome
+                        </label>
+
+                        <input
+                            type="text"
+                            name="nome"
+                            class="form-control"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Categoria
+                        </label>
+
+                        <input
+                            type="text"
+                            name="categoria"
+                            class="form-control"
+                            placeholder="Exemplo: Navegador"
+                        >
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label
+                            for="icone"
+                            class="form-label"
+                        >
+                            Ícone
+                        </label>
+
+                        <select
+                            name="icone"
+                            id="icone"
+                            class="form-select"
+                        >
+                            <option value="bi-box-seam">
+                                Software padrão
+                            </option>
+
+                            <option value="bi-browser-chrome">
+                                Google Chrome
+                            </option>
+
+                            <option value="bi-browser-firefox">
+                                Mozilla Firefox
+                            </option>
+
+                            <option value="bi-microsoft">
+                                Microsoft
+                            </option>
+
+                            <option value="bi-cloud">
+                                Nuvem / OneDrive
+                            </option>
+
+                            <option value="bi-database">
+                                Banco de dados
+                            </option>
+
+                            <option value="bi-code-slash">
+                                Desenvolvimento
+                            </option>
+
+                            <option value="bi-file-earmark-pdf">
+                                PDF
+                            </option>
+
+                            <option value="bi-shield-check">
+                                Segurança
+                            </option>
+
+                            <option value="bi-tools">
+                                Ferramenta
+                            </option>
+
+                            <option value="bi-hdd">
+                                Armazenamento
+                            </option>
+
+                            <option value="bi-camera-video">
+                                Videoconferência
+                            </option>
+                        </select>
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Descrição
+                        </label>
+
+                        <textarea
+                            name="descricao"
+                            class="form-control"
+                            rows="3"
+                            placeholder="Descrição resumida do software"
+                        ></textarea>
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Link para download
+                        </label>
+
+                        <input
+                            type="url"
+                            name="url_download"
+                            class="form-control"
+                            placeholder="https://..."
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Cadastrar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

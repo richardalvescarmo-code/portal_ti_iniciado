@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | Portal TI{% endblock %}
+
+{% block body %}
+
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">Visão geral</span>
+
+        <h1>
+            Bem-vindo, {{ current_user.nome.split()[0] }}
+        </h1>
+
+        <p>
+            Acompanhe os dados do Portal TI e acesse os principais sistemas da equipe.
+        </p>
+    </div>
+</section>
+
+
+<section class="content-section">
+
+    <div class="section-heading">
+        <div>
+            <h2>Resumo do Portal</h2>
+
+            <p>
+                Quantidade atual de registros cadastrados no sistema.
+            </p>
+        </div>
+    </div>
+
+    <div class="metric-grid">
+
+        <article class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-box-seam"></i>
+            </div>
+
+            <div>
+                <span>Softwares</span>
+                <strong>{{ resumo.softwares }}</strong>
+                <small>Cadastrados</small>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-journal-text"></i>
+            </div>
+
+            <div>
+                <span>Procedimentos</span>
+                <strong>{{ resumo.procedimentos }}</strong>
+                <small>Cadastrados</small>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-tools"></i>
+            </div>
+
+            <div>
+                <span>Ferramentas</span>
+                <strong>{{ resumo.ferramentas }}</strong>
+                <small>Cadastradas</small>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-device-hdd"></i>
+            </div>
+
+            <div>
+                <span>Discos no cofre</span>
+                <strong>{{ resumo.discos }}</strong>
+                <small>Cadastrados</small>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">
+                <i class="bi bi-people"></i>
+            </div>
+
+            <div>
+                <span>Usuários</span>
+                <strong>{{ resumo.usuarios }}</strong>
+                <small>Cadastrados</small>
+            </div>
+        </article>
+
+    </div>
+
+</section>
+
+
+<section class="content-section mt-4">
+
+    <div class="section-heading">
+        <div>
+            <h2>Sistemas Corporativos</h2>
+
+            <p>
+                Selecione um sistema para abrir em uma nova aba.
+            </p>
+        </div>
+    </div>
+
+    <div class="integration-grid">
+
+        {% for item in integrations %}
+
+            <a
+                class="integration-card"
+                href="{{ item.url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+
+                <div class="integration-card-top">
+
+                    <div class="integration-icon">
+                        <i class="bi {{ item.icon }}"></i>
+                    </div>
+
+                    <span class="status-badge">
+                        <span></span>
+                        Disponível
+                    </span>
+
+                </div>
+
+                <div class="integration-card-body">
+
+                    <h3>{{ item.name }}</h3>
+
+                    <p>
+                        {{ item.description }}
+                    </p>
+
+                </div>
+
+                <div class="integration-card-footer">
+
+                    <span>Acessar sistema</span>
+
+                    <i class="bi bi-box-arrow-up-right"></i>
+
+                </div>
+
+            </a>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+<section class="content-section mt-4">
+
+    <div class="section-heading">
+        <div>
+            <h2>Últimas atividades</h2>
+
+            <p>
+                Alterações recentes registradas no Portal TI.
+            </p>
+        </div>
+
+        {% if current_user.perfil|lower == "administrador" %}
+            <a
+                href="{{ url_for('auditoria.auditoria') }}"
+                class="btn btn-outline-primary btn-sm"
+            >
+                Ver todos os logs
+            </a>
+        {% endif %}
+    </div>
+
+    {% if ultimas_atividades %}
+
+        <div class="auditoria-tabela-card">
+
+            <div class="table-responsive">
+
+                <table class="table auditoria-table align-middle mb-0">
+
+                    <thead>
+                        <tr>
+                            <th>Data e hora</th>
+                            <th>Usuário</th>
+                            <th>Ação</th>
+                            <th>Módulo</th>
+                            <th>Registro</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for atividade in ultimas_atividades %}
+
+                            <tr>
+
+                                <td class="auditoria-data">
+                                    <i class="bi bi-clock"></i>
+
+                                    {{ atividade.data.strftime('%d/%m/%Y %H:%M') }}
+                                </td>
+
+                                <td>
+                                    <strong class="auditoria-usuario">
+                                        {{ atividade.usuario }}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    <span
+                                        class="auditoria-acao auditoria-acao-{{ atividade.acao|lower }}"
+                                    >
+                                        {{ atividade.acao }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="auditoria-modulo">
+                                        {{ atividade.modulo }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <strong class="auditoria-registro">
+                                        {{ atividade.registro }}
+                                    </strong>
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    {% else %}
+
+        <section class="empty-state-card">
+
+            <div class="empty-state-icon">
+                <i class="bi bi-clock-history"></i>
+            </div>
+
+            <h2>Nenhuma atividade registrada</h2>
+
+            <p>
+                As ações realizadas no Portal TI aparecerão aqui.
+            </p>
+
+        </section>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

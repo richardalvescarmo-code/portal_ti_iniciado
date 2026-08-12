@@ -29,12 +29,16 @@
 
             </div>
 
+
             {% with mensagens = get_flashed_messages(with_categories=true) %}
                 {% if mensagens %}
 
                     {% for categoria, mensagem in mensagens %}
 
-                        <div class="alert alert-{{ categoria }}">
+                        <div
+                            class="alert alert-{{ categoria }}"
+                            role="alert"
+                        >
                             {{ mensagem }}
                         </div>
 
@@ -43,15 +47,29 @@
                 {% endif %}
             {% endwith %}
 
+
             <form method="POST">
+
+                <!-- Proteção contra CSRF -->
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
 
                 <div class="mb-3">
 
-                    <label class="form-label">
+                    <label
+                        for="usuario"
+                        class="form-label"
+                    >
                         Usuário
                     </label>
 
                     <input
+                        type="text"
+                        id="usuario"
                         class="form-control"
                         name="usuario"
                         autocomplete="username"
@@ -60,13 +78,18 @@
 
                 </div>
 
+
                 <div class="mb-3">
 
-                    <label class="form-label">
+                    <label
+                        for="senha"
+                        class="form-label"
+                    >
                         Senha
                     </label>
 
                     <input
+                        id="senha"
                         class="form-control"
                         type="password"
                         name="senha"
@@ -76,6 +99,7 @@
 
                 </div>
 
+
                 <button
                     class="btn btn-primary w-100"
                     type="submit"
@@ -84,6 +108,7 @@
                 </button>
 
             </form>
+
 
             <p class="text-center text-muted small mt-4 mb-0">
                 Ambiente de desenvolvimento

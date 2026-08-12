@@ -1,13 +1,23 @@
 import os
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from flask_login import current_user, login_required
 from sqlalchemy import or_, text
 
 from extensions import db
 from models import Usuario
 from models.ferramentas import Ferramenta
-from models.inventario import DiscoCofre, FiltroPrivacidade
+from models.inventario import (
+    DiscoCofre,
+    FiltroPrivacidade,
+)
 from models.procedimentos import Procedimento
 from models.softwares import Software
 from utils.permissoes import perfis_permitidos
@@ -26,7 +36,11 @@ PERFIS_VALIDOS = {
 }
 
 
-def usuario_duplicado(usuario, email, ignorar_id=None):
+def usuario_duplicado(
+    usuario,
+    email,
+    ignorar_id=None
+):
     consulta = Usuario.query.filter(
         or_(
             Usuario.usuario == usuario,
@@ -40,6 +54,22 @@ def usuario_duplicado(usuario, email, ignorar_id=None):
         )
 
     return consulta.first()
+
+
+def validar_senha_usuario(senha):
+    senha_valida, mensagem = Usuario.validar_senha(
+        senha
+    )
+
+    if not senha_valida:
+        flash(
+            mensagem,
+            "danger"
+        )
+
+        return False
+
+    return True
 
 
 @configuracoes_bp.route("/configuracoes")
@@ -135,7 +165,9 @@ def cadastrar_usuario():
         )
 
         return redirect(
-            url_for("configuracoes.configuracoes")
+            url_for(
+                "configuracoes.configuracoes"
+            )
         )
 
     if perfil not in PERFIS_VALIDOS:
@@ -145,17 +177,9 @@ def cadastrar_usuario():
         )
 
         return redirect(
-            url_for("configuracoes.configuracoes")
-        )
-
-    if len(senha) < 8:
-        flash(
-            "A senha deve ter pelo menos 8 caracteres.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("configuracoes.configuracoes")
+            url_for(
+                "configuracoes.configuracoes"
+            )
         )
 
     if senha != confirmar_senha:
@@ -165,7 +189,18 @@ def cadastrar_usuario():
         )
 
         return redirect(
-            url_for("configuracoes.configuracoes")
+            url_for(
+                "configuracoes.configuracoes"
+            )
+        )
+
+    if not validar_senha_usuario(
+        senha
+    ):
+        return redirect(
+            url_for(
+                "configuracoes.configuracoes"
+            )
         )
 
     duplicado = usuario_duplicado(
@@ -180,7 +215,9 @@ def cadastrar_usuario():
         )
 
         return redirect(
-            url_for("configuracoes.configuracoes")
+            url_for(
+                "configuracoes.configuracoes"
+            )
         )
 
     novo_usuario = Usuario(
@@ -191,11 +228,11 @@ def cadastrar_usuario():
         ativo=True
     )
 
-    novo_usuario.definir_senha(
-        senha
-    )
-
     try:
+        novo_usuario.definir_senha(
+            senha
+        )
+
         db.session.add(
             novo_usuario
         )
@@ -205,6 +242,14 @@ def cadastrar_usuario():
         flash(
             "Usuário cadastrado com sucesso.",
             "success"
+        )
+
+    except ValueError as erro:
+        db.session.rollback()
+
+        flash(
+            str(erro),
+            "danger"
         )
 
     except Exception as erro:
@@ -220,7 +265,9 @@ def cadastrar_usuario():
         )
 
     return redirect(
-        url_for("configuracoes.configuracoes")
+        url_for(
+            "configuracoes.configuracoes"
+        )
     )
 
 
@@ -267,7 +314,9 @@ def editar_usuario(usuario_id):
         )
 
         return redirect(
-            url_for("configuracoes.configuracoes")
+            url_for(
+                "configuracoes.configuracoes"
+            )
         )
 
     if perfil not in PERFIS_VALIDOS:
@@ -277,7 +326,9 @@ def editar_usuario(usuario_id):
         )
 
         return redirect(
-            url_for("configuracoes.configuracoes")
+            url_for(
+                "configuracoes.configuracoes"
+            )
         )
 
     duplicado = usuario_duplicado(
@@ -293,7 +344,9 @@ def editar_usuario(usuario_id):
         )
 
         return redirect(
-            url_for("configuracoes.configuracoes")
+            url_for(
+                "configuracoes.configuracoes"
+            )
         )
 
     if usuario.id == current_user.id:
@@ -326,7 +379,9 @@ def editar_usuario(usuario_id):
         )
 
     return redirect(
-        url_for("configuracoes.configuracoes")
+        url_for(
+            "configuracoes.configuracoes"
+        )
     )
 
 
@@ -352,16 +407,6 @@ def redefinir_senha_usuario(usuario_id):
         ""
     )
 
-    if len(nova_senha) < 8:
-        flash(
-            "A nova senha deve ter pelo menos 8 caracteres.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("configuracoes.configuracoes")
-        )
-
     if nova_senha != confirmar_senha:
         flash(
             "A confirmação da senha não confere.",
@@ -369,19 +414,38 @@ def redefinir_senha_usuario(usuario_id):
         )
 
         return redirect(
-            url_for("configuracoes.configuracoes")
+            url_for(
+                "configuracoes.configuracoes"
+            )
         )
 
-    usuario.definir_senha(
+    if not validar_senha_usuario(
         nova_senha
-    )
+    ):
+        return redirect(
+            url_for(
+                "configuracoes.configuracoes"
+            )
+        )
 
     try:
+        usuario.definir_senha(
+            nova_senha
+        )
+
         db.session.commit()
 
         flash(
             f"Senha de {usuario.nome} redefinida com sucesso.",
             "success"
+        )
+
+    except ValueError as erro:
+        db.session.rollback()
+
+        flash(
+            str(erro),
+            "danger"
         )
 
     except Exception as erro:
@@ -397,7 +461,9 @@ def redefinir_senha_usuario(usuario_id):
         )
 
     return redirect(
-        url_for("configuracoes.configuracoes")
+        url_for(
+            "configuracoes.configuracoes"
+        )
     )
 
 
@@ -420,7 +486,9 @@ def excluir_usuario(usuario_id):
         )
 
         return redirect(
-            url_for("configuracoes.configuracoes")
+            url_for(
+                "configuracoes.configuracoes"
+            )
         )
 
     try:
@@ -448,5 +516,7 @@ def excluir_usuario(usuario_id):
         )
 
     return redirect(
-        url_for("configuracoes.configuracoes")
+        url_for(
+            "configuracoes.configuracoes"
+        )
     )

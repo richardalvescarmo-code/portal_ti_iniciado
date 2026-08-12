@@ -1,7 +1,11 @@
+import re
 from datetime import datetime
 
 from flask_login import UserMixin
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import (
+    check_password_hash,
+    generate_password_hash,
+)
 
 from extensions import db
 
@@ -68,10 +72,61 @@ class Usuario(UserMixin, db.Model):
         onupdate=datetime.utcnow
     )
 
+    @staticmethod
+    def validar_senha(senha: str):
+        if not senha:
+            return False, "Informe uma senha."
+
+        if len(senha) < 8:
+            return (
+                False,
+                "A senha deve ter pelo menos 8 caracteres."
+            )
+
+        if not re.search(r"[A-Z]", senha):
+            return (
+                False,
+                "A senha deve conter pelo menos uma letra maiúscula."
+            )
+
+        if not re.search(r"[a-z]", senha):
+            return (
+                False,
+                "A senha deve conter pelo menos uma letra minúscula."
+            )
+
+        if not re.search(r"\d", senha):
+            return (
+                False,
+                "A senha deve conter pelo menos um número."
+            )
+
+        if not re.search(r"[^A-Za-z0-9]", senha):
+            return (
+                False,
+                "A senha deve conter pelo menos um caractere especial."
+            )
+
+        return True, None
+
     def definir_senha(self, senha: str) -> None:
-        self.senha_hash = generate_password_hash(senha)
+        senha_valida, mensagem = self.validar_senha(
+            senha
+        )
+
+        if not senha_valida:
+            raise ValueError(
+                mensagem
+            )
+
+        self.senha_hash = generate_password_hash(
+            senha
+        )
 
     def verificar_senha(self, senha: str) -> bool:
+        if not senha:
+            return False
+
         return check_password_hash(
             self.senha_hash,
             senha

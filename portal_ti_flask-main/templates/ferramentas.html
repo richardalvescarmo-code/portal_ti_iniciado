@@ -169,7 +169,6 @@
 
                 </article>
 
-                <!-- Editar ferramenta -->
                 <div
                     class="modal fade"
                     id="modalEditarFerramenta{{ ferramenta.id }}"
@@ -187,6 +186,12 @@
                                     ferramenta_id=ferramenta.id
                                 ) }}"
                             >
+
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}"
+                                >
 
                                 <div class="modal-header">
                                     <h5 class="modal-title">
@@ -390,7 +395,6 @@
                     </div>
                 </div>
 
-                <!-- Excluir ferramenta -->
                 <div
                     class="modal fade"
                     id="modalExcluirFerramenta{{ ferramenta.id }}"
@@ -442,12 +446,20 @@
                                         ferramenta_id=ferramenta.id
                                     ) }}"
                                 >
+
+                                    <input
+                                        type="hidden"
+                                        name="csrf_token"
+                                        value="{{ csrf_token() }}"
+                                    >
+
                                     <button
                                         type="submit"
                                         class="btn btn-danger"
                                     >
                                         Excluir
                                     </button>
+
                                 </form>
 
                             </div>
@@ -496,7 +508,6 @@
 
 </section>
 
-<!-- Cadastrar ferramenta -->
 <div
     class="modal fade"
     id="modalCadastrarFerramenta"
@@ -511,6 +522,12 @@
                 method="POST"
                 action="{{ url_for('ferramentas.cadastrar_ferramenta') }}"
             >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
 
                 <div class="modal-header">
                     <h5 class="modal-title">

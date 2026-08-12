@@ -183,6 +183,12 @@
                                 ) }}"
                             >
 
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}"
+                                >
+
                                 <div class="modal-header">
 
                                     <h5 class="modal-title">
@@ -377,6 +383,12 @@
                                         filtro_id=filtro.id
                                     ) }}"
                                 >
+
+                                    <input
+                                        type="hidden"
+                                        name="csrf_token"
+                                        value="{{ csrf_token() }}"
+                                    >
 
                                     <button
                                         type="submit"
@@ -584,6 +596,12 @@
                                     disco_id=disco.id
                                 ) }}"
                             >
+
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}"
+                                >
 
                                 <div class="modal-header">
 
@@ -814,6 +832,12 @@
                                     ) }}"
                                 >
 
+                                    <input
+                                        type="hidden"
+                                        name="csrf_token"
+                                        value="{{ csrf_token() }}"
+                                    >
+
                                     <button
                                         type="submit"
                                         class="btn btn-danger"
@@ -889,6 +913,12 @@
                 method="POST"
                 action="{{ url_for('inventario.cadastrar_filtro') }}"
             >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
 
                 <div class="modal-header">
 
@@ -1031,6 +1061,12 @@
                 method="POST"
                 action="{{ url_for('inventario.cadastrar_disco') }}"
             >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
 
                 <div class="modal-header">
 

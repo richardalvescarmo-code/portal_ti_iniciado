@@ -1,12 +1,12 @@
-from flask import Flask
+from flask import Flask, request
 from sqlalchemy import text
 
 from config import Config
-from extensions import db, login_manager
+from extensions import csrf, db, limiter, login_manager
 from models.usuario import Usuario
 from routes import (
-    auditoria_bp,
     auth_bp,
+    auditoria_bp,
     configuracoes_bp,
     dashboard_bp,
     ferramentas_bp,
@@ -21,13 +21,17 @@ def create_app():
     app = Flask(__name__)
 
     app.config.from_object(Config)
-
+    
     db.init_app(app)
     login_manager.init_app(app)
+    csrf.init_app(app)
+    limiter.init_app(app)
 
     registrar_blueprints(app)
     registrar_login_manager()
     registrar_rotas_temporarias(app)
+    registrar_headers_seguranca(app)
+    registrar_erros(app)
 
     return app
 
@@ -66,8 +70,60 @@ def registrar_rotas_temporarias(app):
         }
 
 
+def registrar_headers_seguranca(app):
+    @app.after_request
+    def adicionar_headers(response):
+
+        response.headers["X-Content-Type-Options"] = "nosniff"
+
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+
+        response.headers["Referrer-Policy"] = (
+            "strict-origin-when-cross-origin"
+        )
+
+        response.headers["Permissions-Policy"] = (
+            "camera=(), "
+            "microphone=(), "
+            "geolocation=()"
+        )
+
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' "
+            "https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' "
+            "https://cdn.jsdelivr.net; "
+            "font-src 'self' "
+            "https://cdn.jsdelivr.net data:; "
+            "img-src 'self' data:; "
+            "connect-src 'self'; "
+            "frame-ancestors 'self'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+
+        if request.is_secure:
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains"
+            )
+
+        return response
+
+
+def registrar_erros(app):
+    @app.errorhandler(413)
+    def arquivo_muito_grande(erro):
+        return (
+            "O arquivo enviado excede o tamanho máximo permitido.",
+            413
+        )
+
+
 app = create_app()
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(
+        debug=False
+    )

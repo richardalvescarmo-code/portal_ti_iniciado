@@ -210,6 +210,12 @@
                                 ) }}"
                             >
 
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}"
+                                >
+
                                 <div class="modal-header">
 
                                     <h5 class="modal-title">
@@ -577,6 +583,12 @@
                                     ) }}"
                                 >
 
+                                    <input
+                                        type="hidden"
+                                        name="csrf_token"
+                                        value="{{ csrf_token() }}"
+                                    >
+
                                     <button
                                         type="submit"
                                         class="btn btn-danger"
@@ -635,6 +647,12 @@
                 enctype="multipart/form-data"
                 action="{{ url_for('softwares.cadastrar_software') }}"
             >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
 
                 <div class="modal-header">
 

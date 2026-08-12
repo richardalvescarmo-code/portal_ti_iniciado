@@ -1,7 +1,21 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
-from flask_login import login_required, login_user, logout_user
+from urllib.parse import urljoin, urlparse
 
-from extensions import db
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
+from flask_login import (
+    login_required,
+    login_user,
+    logout_user,
+)
+
+from extensions import db, limiter
 from models import Usuario
 
 
@@ -11,9 +25,40 @@ auth_bp = Blueprint(
 )
 
 
+def url_redirecionamento_segura(target):
+    if not target:
+        return False
+
+    host_url = request.host_url
+
+    url_base = urlparse(
+        host_url
+    )
+
+    url_destino = urlparse(
+        urljoin(
+            host_url,
+            target
+        )
+    )
+
+    return (
+        url_destino.scheme in ("http", "https")
+        and url_base.netloc == url_destino.netloc
+    )
+
+
 @auth_bp.route(
     "/login",
     methods=["GET", "POST"]
+)
+@limiter.limit(
+    "5 per minute",
+    methods=["POST"],
+    error_message=(
+        "Muitas tentativas de login. "
+        "Aguarde um minuto e tente novamente."
+    )
 )
 def login():
 
@@ -36,7 +81,9 @@ def login():
         if (
             usuario
             and usuario.ativo
-            and usuario.verificar_senha(senha_digitada)
+            and usuario.verificar_senha(
+                senha_digitada
+            )
         ):
 
             usuario.registrar_login()
@@ -47,17 +94,28 @@ def login():
                 usuario
             )
 
+            # Faz a sessão respeitar
+            # PERMANENT_SESSION_LIFETIME
+            session.permanent = True
+
             proxima_pagina = request.args.get(
                 "next"
             )
 
-            if proxima_pagina:
+            if (
+                proxima_pagina
+                and url_redirecionamento_segura(
+                    proxima_pagina
+                )
+            ):
                 return redirect(
                     proxima_pagina
                 )
 
             return redirect(
-                url_for("dashboard.home")
+                url_for(
+                    "dashboard.home"
+                )
             )
 
         flash(
@@ -66,7 +124,9 @@ def login():
         )
 
         return redirect(
-            url_for("auth.login")
+            url_for(
+                "auth.login"
+            )
         )
 
     return render_template(
@@ -74,12 +134,18 @@ def login():
     )
 
 
-@auth_bp.route("/logout")
+@auth_bp.route(
+    "/logout"
+)
 @login_required
 def logout():
 
     logout_user()
 
+    session.clear()
+
     return redirect(
-        url_for("auth.login")
+        url_for(
+            "auth.login"
+        )
     )

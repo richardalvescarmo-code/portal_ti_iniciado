@@ -380,6 +380,12 @@
                                 ) }}"
                             >
 
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}"
+                                >
+
                                 <div class="modal-header">
                                     <h5 class="modal-title">
                                         Editar usuário
@@ -483,6 +489,7 @@
                                 </div>
 
                                 <div class="modal-footer">
+
                                     <button
                                         type="button"
                                         class="btn btn-secondary"
@@ -497,6 +504,7 @@
                                     >
                                         Salvar alterações
                                     </button>
+
                                 </div>
 
                             </form>
@@ -524,7 +532,14 @@
                                 ) }}"
                             >
 
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="{{ csrf_token() }}"
+                                >
+
                                 <div class="modal-header">
+
                                     <h5 class="modal-title">
                                         Redefinir senha
                                     </h5>
@@ -535,6 +550,7 @@
                                         data-bs-dismiss="modal"
                                         aria-label="Fechar"
                                     ></button>
+
                                 </div>
 
                                 <div class="modal-body">
@@ -575,6 +591,7 @@
                                 </div>
 
                                 <div class="modal-footer">
+
                                     <button
                                         type="button"
                                         class="btn btn-secondary"
@@ -589,6 +606,7 @@
                                     >
                                         Redefinir senha
                                     </button>
+
                                 </div>
 
                             </form>
@@ -610,6 +628,7 @@
                             <div class="modal-content">
 
                                 <div class="modal-header">
+
                                     <h5 class="modal-title">
                                         Excluir usuário
                                     </h5>
@@ -620,9 +639,11 @@
                                         data-bs-dismiss="modal"
                                         aria-label="Fechar"
                                     ></button>
+
                                 </div>
 
                                 <div class="modal-body">
+
                                     <p>
                                         Deseja excluir
                                         <strong>{{ usuario_item.nome }}</strong>?
@@ -631,9 +652,11 @@
                                     <p class="text-muted mb-0">
                                         Essa ação não poderá ser desfeita.
                                     </p>
+
                                 </div>
 
                                 <div class="modal-footer">
+
                                     <button
                                         type="button"
                                         class="btn btn-secondary"
@@ -649,13 +672,22 @@
                                             usuario_id=usuario_item.id
                                         ) }}"
                                     >
+
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="{{ csrf_token() }}"
+                                        >
+
                                         <button
                                             type="submit"
                                             class="btn btn-danger"
                                         >
                                             Excluir
                                         </button>
+
                                     </form>
+
                                 </div>
 
                             </div>
@@ -702,7 +734,14 @@
                 action="{{ url_for('configuracoes.cadastrar_usuario') }}"
             >
 
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
                 <div class="modal-header">
+
                     <h5 class="modal-title">
                         Cadastrar usuário
                     </h5>
@@ -713,6 +752,7 @@
                         data-bs-dismiss="modal"
                         aria-label="Fechar"
                     ></button>
+
                 </div>
 
                 <div class="modal-body">
@@ -774,7 +814,9 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Senha inicial</label>
+                        <label class="form-label">
+                            Senha inicial
+                        </label>
 
                         <input
                             type="password"
@@ -802,6 +844,7 @@
                 </div>
 
                 <div class="modal-footer">
+
                     <button
                         type="button"
                         class="btn btn-secondary"
@@ -816,6 +859,7 @@
                     >
                         Cadastrar
                     </button>
+
                 </div>
 
             </form>

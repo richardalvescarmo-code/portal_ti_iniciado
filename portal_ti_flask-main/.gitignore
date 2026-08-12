@@ -7,3 +7,6 @@ instance/
 *.db
 .vscode/
 .idea/
+# Executáveis enviados pelo Portal TI
+static/uploads/softwares/
+*.exe

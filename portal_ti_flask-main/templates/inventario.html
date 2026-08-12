@@ -11,26 +11,16 @@
         <p>Controle de filtros de privacidade e discos armazenados no cofre.</p>
     </div>
 
-    <div class="heading-actions d-flex gap-2 flex-wrap">
-
-        <button
-            type="button"
-            class="btn btn-outline-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#modalCadastrarFiltro"
-        >
-            <i class="bi bi-plus-lg"></i>
-            Adicionar filtro de privacidade
-        </button>
+    <div class="heading-actions">
 
         <button
             type="button"
             class="btn btn-primary"
             data-bs-toggle="modal"
-            data-bs-target="#modalCadastrarDisco"
+            data-bs-target="#modalCadastrarFiltro"
         >
             <i class="bi bi-plus-lg"></i>
-            Adicionar disco ao cofre
+            Adicionar filtro de privacidade
         </button>
 
     </div>
@@ -457,23 +447,38 @@
         </div>
 
 
-        <div style="width: 320px;">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
 
-            <div class="input-group">
+            <div style="width: 320px;">
 
-                <span class="input-group-text">
-                    <i class="bi bi-search"></i>
-                </span>
+                <div class="input-group">
 
-                <input
-                    type="search"
-                    id="pesquisaDiscos"
-                    class="form-control"
-                    placeholder="Pesquisar máquina, serial ou fornecedor"
-                    autocomplete="off"
-                >
+                    <span class="input-group-text">
+                        <i class="bi bi-search"></i>
+                    </span>
+
+                    <input
+                        type="search"
+                        id="pesquisaDiscos"
+                        class="form-control"
+                        placeholder="Pesquisar máquina, serial ou fornecedor"
+                        autocomplete="off"
+                    >
+
+                </div>
 
             </div>
+
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCadastrarDisco"
+            >
+                <i class="bi bi-plus-lg"></i>
+                Adicionar disco
+            </button>
 
         </div>
 
@@ -888,7 +893,7 @@
             <h2>Nenhum disco cadastrado</h2>
 
             <p>
-                Clique em “Adicionar disco ao cofre” para cadastrar o primeiro.
+                Clique em “Adicionar disco” para cadastrar o primeiro.
             </p>
 
         </section>

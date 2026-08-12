@@ -8,7 +8,7 @@
     <div>
         <span class="eyebrow">Portal TI</span>
         <h1>Softwares</h1>
-        <p>Catálogo de aplicativos homologados e links oficiais.</p>
+        <p>Catálogo de aplicativos homologados e instaladores da equipe de TI.</p>
     </div>
 
     <div class="heading-actions">
@@ -52,7 +52,7 @@
         <div>
             <h2>Aplicativos disponíveis</h2>
             <p>
-                Utilize somente os links oficiais cadastrados pela equipe de TI.
+                Utilize os links oficiais ou instaladores disponibilizados pela equipe de TI.
             </p>
         </div>
     </div>
@@ -99,38 +99,68 @@
                         {% endif %}
 
                         <p>
-                            {{ software.descricao or
-                            "Nenhuma descrição informada." }}
+                            {{ software.descricao or "Nenhuma descrição informada." }}
                         </p>
+
+                        {% if software.arquivo_original %}
+                            <small class="d-block mt-2 text-muted">
+                                <i class="bi bi-file-earmark-binary"></i>
+                                {{ software.arquivo_original }}
+                            </small>
+                        {% endif %}
 
                     </div>
 
 
                     <div class="integration-card-footer">
 
-                        {% if software.ativo %}
+                        <div class="d-flex gap-2 flex-wrap">
 
-                            <a
-                                href="{{ software.url_download }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="btn btn-sm btn-primary"
-                            >
-                                <i class="bi bi-download"></i>
-                                Link para download
-                            </a>
+                            {% if software.ativo %}
 
-                        {% else %}
+                                {% if software.arquivo_nome %}
 
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-secondary"
-                                disabled
-                            >
-                                Indisponível
-                            </button>
+                                    <a
+                                        href="{{ url_for(
+                                            'static',
+                                            filename='uploads/softwares/' ~ software.arquivo_nome
+                                        ) }}"
+                                        class="btn btn-sm btn-primary"
+                                        download="{{ software.arquivo_original }}"
+                                    >
+                                        <i class="bi bi-download"></i>
+                                        Baixar executável
+                                    </a>
 
-                        {% endif %}
+                                {% endif %}
+
+                                {% if software.url_download %}
+
+                                    <a
+                                        href="{{ software.url_download }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="btn btn-sm btn-outline-primary"
+                                    >
+                                        <i class="bi bi-box-arrow-up-right"></i>
+                                        Link oficial
+                                    </a>
+
+                                {% endif %}
+
+                            {% else %}
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-secondary"
+                                    disabled
+                                >
+                                    Indisponível
+                                </button>
+
+                            {% endif %}
+
+                        </div>
 
 
                         <div class="d-flex gap-2">
@@ -167,12 +197,13 @@
                     aria-hidden="true"
                 >
 
-                    <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
 
                         <div class="modal-content">
 
                             <form
                                 method="POST"
+                                enctype="multipart/form-data"
                                 action="{{ url_for(
                                     'softwares.editar_software',
                                     software_id=software.id
@@ -358,11 +389,75 @@
                                             type="url"
                                             name="url_download"
                                             class="form-control"
-                                            value="{{ software.url_download }}"
-                                            required
+                                            value="{{ software.url_download or '' }}"
+                                            placeholder="https://..."
                                         >
 
+                                        <div class="form-text">
+                                            Opcional caso exista um executável anexado.
+                                        </div>
+
                                     </div>
+
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Executável
+                                        </label>
+
+                                        {% if software.arquivo_original %}
+
+                                            <div class="alert alert-light border py-2">
+
+                                                <div class="d-flex align-items-center justify-content-between gap-2">
+
+                                                    <span>
+                                                        <i class="bi bi-file-earmark-binary me-1"></i>
+                                                        {{ software.arquivo_original }}
+                                                    </span>
+
+                                                </div>
+
+                                            </div>
+
+                                        {% endif %}
+
+                                        <input
+                                            type="file"
+                                            name="arquivo"
+                                            class="form-control"
+                                            accept=".exe"
+                                        >
+
+                                        <div class="form-text">
+                                            Selecione outro .exe somente se quiser substituir o atual.
+                                        </div>
+
+                                    </div>
+
+
+                                    {% if software.arquivo_nome %}
+
+                                        <div class="form-check mb-3">
+
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                name="remover_arquivo"
+                                                id="removerArquivo{{ software.id }}"
+                                            >
+
+                                            <label
+                                                class="form-check-label"
+                                                for="removerArquivo{{ software.id }}"
+                                            >
+                                                Remover executável atual
+                                            </label>
+
+                                        </div>
+
+                                    {% endif %}
 
 
                                     <div class="form-check form-switch">
@@ -449,6 +544,14 @@
                                     <strong>{{ software.nome }}</strong>?
                                 </p>
 
+                                {% if software.arquivo_original %}
+                                    <p class="text-muted">
+                                        O executável
+                                        <strong>{{ software.arquivo_original }}</strong>
+                                        também será removido.
+                                    </p>
+                                {% endif %}
+
                                 <p class="text-muted mb-0">
                                     Essa ação não poderá ser desfeita.
                                 </p>
@@ -523,12 +626,13 @@
     aria-hidden="true"
 >
 
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
 
         <div class="modal-content">
 
             <form
                 method="POST"
+                enctype="multipart/form-data"
                 action="{{ url_for('softwares.cadastrar_software') }}"
             >
 
@@ -675,8 +779,31 @@
                             name="url_download"
                             class="form-control"
                             placeholder="https://..."
-                            required
                         >
+
+                        <div class="form-text">
+                            Opcional caso você envie um executável.
+                        </div>
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Executável
+                        </label>
+
+                        <input
+                            type="file"
+                            name="arquivo"
+                            class="form-control"
+                            accept=".exe"
+                        >
+
+                        <div class="form-text">
+                            Somente arquivos .exe são permitidos.
+                        </div>
 
                     </div>
 

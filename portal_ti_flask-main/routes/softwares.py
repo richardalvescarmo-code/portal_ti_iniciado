@@ -1,5 +1,9 @@
+import os
+from uuid import uuid4
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from werkzeug.utils import secure_filename
 
 from extensions import db
 from models.softwares import Software
@@ -12,9 +16,64 @@ softwares_bp = Blueprint(
 )
 
 
+def pasta_uploads():
+    return os.path.join(
+        os.getcwd(),
+        "static",
+        "uploads",
+        "softwares"
+    )
+
+
+def salvar_executavel(arquivo):
+    if not arquivo or not arquivo.filename:
+        return None, None
+
+    nome_original = secure_filename(
+        arquivo.filename
+    )
+
+    if not nome_original.lower().endswith(".exe"):
+        raise ValueError(
+            "Somente arquivos .exe são permitidos."
+        )
+
+    nome_salvo = f"{uuid4().hex}.exe"
+
+    os.makedirs(
+        pasta_uploads(),
+        exist_ok=True
+    )
+
+    caminho = os.path.join(
+        pasta_uploads(),
+        nome_salvo
+    )
+
+    arquivo.save(
+        caminho
+    )
+
+    return nome_salvo, nome_original
+
+
+def excluir_executavel(nome_arquivo):
+    if not nome_arquivo:
+        return
+
+    caminho = os.path.join(
+        pasta_uploads(),
+        nome_arquivo
+    )
+
+    if os.path.exists(caminho):
+        os.remove(caminho)
+
+
 @softwares_bp.route("/softwares")
 @login_required
 def softwares():
+
     lista_softwares = Software.query.order_by(
         Software.nome.asc()
     ).all()
@@ -32,6 +91,7 @@ def softwares():
 )
 @login_required
 def cadastrar_software():
+
     nome = request.form.get(
         "nome",
         ""
@@ -52,6 +112,10 @@ def cadastrar_software():
         ""
     ).strip()
 
+    arquivo = request.files.get(
+        "arquivo"
+    )
+
     if not nome:
         flash(
             "Informe o nome do software.",
@@ -62,9 +126,9 @@ def cadastrar_software():
             url_for("softwares.softwares")
         )
 
-    if not url_download:
+    if not url_download and not (arquivo and arquivo.filename):
         flash(
-            "Informe o link para download.",
+            "Informe um link para download ou anexe um arquivo .exe.",
             "danger"
         )
 
@@ -72,15 +136,24 @@ def cadastrar_software():
             url_for("softwares.softwares")
         )
 
-    novo_software = Software(
-        nome=nome,
-        descricao=descricao or None,
-        categoria=categoria or None,
-        url_download=url_download,
-        ativo=True
-    )
+    nome_salvo = None
+    nome_original = None
 
     try:
+        nome_salvo, nome_original = salvar_executavel(
+            arquivo
+        )
+
+        novo_software = Software(
+            nome=nome,
+            descricao=descricao or None,
+            categoria=categoria or None,
+            url_download=url_download or None,
+            arquivo_nome=nome_salvo,
+            arquivo_original=nome_original,
+            ativo=True
+        )
+
         db.session.add(
             novo_software
         )
@@ -99,8 +172,22 @@ def cadastrar_software():
             "success"
         )
 
+    except ValueError as erro:
+        excluir_executavel(
+            nome_salvo
+        )
+
+        flash(
+            str(erro),
+            "danger"
+        )
+
     except Exception as erro:
         db.session.rollback()
+
+        excluir_executavel(
+            nome_salvo
+        )
 
         print(
             f"Erro ao cadastrar software: {erro}"
@@ -122,6 +209,7 @@ def cadastrar_software():
 )
 @login_required
 def editar_software(software_id):
+
     software = Software.query.get_or_404(
         software_id
     )
@@ -150,6 +238,14 @@ def editar_software(software_id):
         "ativo"
     ) == "on"
 
+    arquivo = request.files.get(
+        "arquivo"
+    )
+
+    remover_arquivo = request.form.get(
+        "remover_arquivo"
+    ) == "on"
+
     if not nome:
         flash(
             "Informe o nome do software.",
@@ -160,23 +256,35 @@ def editar_software(software_id):
             url_for("softwares.softwares")
         )
 
-    if not url_download:
-        flash(
-            "Informe o link para download.",
-            "danger"
-        )
+    arquivo_antigo = software.arquivo_nome
 
-        return redirect(
-            url_for("softwares.softwares")
-        )
-
-    software.nome = nome
-    software.descricao = descricao or None
-    software.categoria = categoria or None
-    software.url_download = url_download
-    software.ativo = ativo
+    novo_nome_salvo = None
+    novo_nome_original = None
 
     try:
+        if arquivo and arquivo.filename:
+            novo_nome_salvo, novo_nome_original = salvar_executavel(
+                arquivo
+            )
+
+            software.arquivo_nome = novo_nome_salvo
+            software.arquivo_original = novo_nome_original
+
+        elif remover_arquivo:
+            software.arquivo_nome = None
+            software.arquivo_original = None
+
+        software.nome = nome
+        software.descricao = descricao or None
+        software.categoria = categoria or None
+        software.url_download = url_download or None
+        software.ativo = ativo
+
+        if not software.url_download and not software.arquivo_nome:
+            raise ValueError(
+                "O software precisa ter um link ou um arquivo .exe."
+            )
+
         registrar_auditoria(
             usuario=current_user.nome,
             modulo="Softwares",
@@ -186,13 +294,34 @@ def editar_software(software_id):
 
         db.session.commit()
 
+        if novo_nome_salvo or remover_arquivo:
+            excluir_executavel(
+                arquivo_antigo
+            )
+
         flash(
             "Software atualizado com sucesso.",
             "success"
         )
 
+    except ValueError as erro:
+        db.session.rollback()
+
+        excluir_executavel(
+            novo_nome_salvo
+        )
+
+        flash(
+            str(erro),
+            "danger"
+        )
+
     except Exception as erro:
         db.session.rollback()
+
+        excluir_executavel(
+            novo_nome_salvo
+        )
 
         print(
             f"Erro ao atualizar software: {erro}"
@@ -214,11 +343,13 @@ def editar_software(software_id):
 )
 @login_required
 def excluir_software(software_id):
+
     software = Software.query.get_or_404(
         software_id
     )
 
     nome_software = software.nome
+    arquivo_nome = software.arquivo_nome
 
     try:
         db.session.delete(
@@ -233,6 +364,10 @@ def excluir_software(software_id):
         )
 
         db.session.commit()
+
+        excluir_executavel(
+            arquivo_nome
+        )
 
         flash(
             "Software excluído com sucesso.",

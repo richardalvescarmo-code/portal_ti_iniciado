@@ -28,7 +28,17 @@ class Software(db.Model):
 
     url_download = db.Column(
         db.String(500),
-        nullable=False
+        nullable=True
+    )
+
+    arquivo_nome = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
+    arquivo_original = db.Column(
+        db.String(255),
+        nullable=True
     )
 
     ativo = db.Column(
@@ -41,6 +51,13 @@ class Software(db.Model):
         db.DateTime,
         nullable=False,
         default=datetime.utcnow
+    )
+
+    atualizado_em = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
     )
 
     def __repr__(self):

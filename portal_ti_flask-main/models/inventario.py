@@ -16,6 +16,11 @@ class FiltroPrivacidade(db.Model):
         nullable=False
     )
 
+    tamanho = db.Column(
+        db.String(30),
+        nullable=False
+    )
+
     quantidade = db.Column(
         db.Integer,
         nullable=False,
@@ -35,7 +40,10 @@ class FiltroPrivacidade(db.Model):
     )
 
     def __repr__(self):
-        return f"<FiltroPrivacidade {self.tipo}>"
+        return (
+            f"<FiltroPrivacidade "
+            f"{self.tipo} - {self.tamanho}>"
+        )
 
 
 class DiscoCofre(db.Model):

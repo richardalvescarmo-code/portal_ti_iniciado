@@ -11,7 +11,18 @@
         <p>Controle de filtros de privacidade e discos armazenados no cofre.</p>
     </div>
 
-    <div class="heading-actions">
+    <div class="heading-actions d-flex gap-2 flex-wrap">
+
+        <button
+            type="button"
+            class="btn btn-outline-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#modalCadastrarFiltro"
+        >
+            <i class="bi bi-plus-lg"></i>
+            Adicionar filtro de privacidade
+        </button>
+
         <button
             type="button"
             class="btn btn-primary"
@@ -21,8 +32,10 @@
             <i class="bi bi-plus-lg"></i>
             Adicionar disco ao cofre
         </button>
+
     </div>
 </section>
+
 
 {% with mensagens = get_flashed_messages(with_categories=true) %}
     {% if mensagens %}
@@ -44,106 +57,276 @@
     {% endif %}
 {% endwith %}
 
+
 <section class="content-section">
 
     <div class="section-heading">
         <div>
             <h2>Filtros de privacidade</h2>
-            <p>Quantidade disponível para notebooks e desktops.</p>
+            <p>
+                Controle por tipo, tamanho e quantidade disponível.
+            </p>
         </div>
     </div>
 
-    <div class="filtros-privacidade-grid">
+    {% if filtros %}
 
-        {% for filtro in filtros %}
+        <div class="filtros-privacidade-grid">
 
-            <article
-                class="filtro-privacidade-card
-                {% if filtro.quantidade <= 4 %}
-                    filtro-estoque-baixo
-                {% elif filtro.quantidade <= 10 %}
-                    filtro-estoque-medio
-                {% else %}
-                    filtro-estoque-bom
-                {% endif %}"
-            >
+            {% for filtro in filtros %}
 
-                <div class="filtro-card-top">
+                <article
+                    class="filtro-privacidade-card
+                    {% if filtro.quantidade <= 4 %}
+                        filtro-estoque-baixo
+                    {% elif filtro.quantidade <= 10 %}
+                        filtro-estoque-medio
+                    {% else %}
+                        filtro-estoque-bom
+                    {% endif %}"
+                >
 
-                    <div class="metric-icon">
-                        {% if filtro.tipo == "Notebook" %}
-                            <i class="bi bi-laptop"></i>
-                        {% else %}
-                            <i class="bi bi-pc-display"></i>
-                        {% endif %}
+                    <div class="filtro-card-top">
+
+                        <div class="metric-icon">
+                            {% if filtro.tipo == "Notebook" %}
+                                <i class="bi bi-laptop"></i>
+                            {% else %}
+                                <i class="bi bi-pc-display"></i>
+                            {% endif %}
+                        </div>
+
+                        <span class="filtro-status-indicador">
+                            {% if filtro.quantidade <= 4 %}
+                                Estoque baixo
+                            {% elif filtro.quantidade <= 10 %}
+                                Atenção
+                            {% else %}
+                                Estoque adequado
+                            {% endif %}
+                        </span>
+
                     </div>
 
-                    <span class="filtro-status-indicador">
-                        {% if filtro.quantidade <= 4 %}
-                            Estoque baixo
-                        {% elif filtro.quantidade <= 10 %}
-                            Atenção
-                        {% else %}
-                            Estoque adequado
+
+                    <div class="filtro-card-body">
+
+                        <span class="filtro-titulo">
+                            Filtro para {{ filtro.tipo }}
+                        </span>
+
+                        <div class="mt-2 mb-2">
+                            <span class="badge text-bg-light border">
+                                <i class="bi bi-arrows-angle-expand me-1"></i>
+                                {{ filtro.tamanho or "Tamanho não informado" }}
+                            </span>
+                        </div>
+
+                        <strong class="filtro-quantidade">
+                            {{ filtro.quantidade }}
+                        </strong>
+
+                        <small>Disponíveis</small>
+
+                        {% if filtro.observacao %}
+                            <p class="filtro-observacao">
+                                {{ filtro.observacao }}
+                            </p>
                         {% endif %}
-                    </span>
 
-                </div>
+                    </div>
 
-                <div class="filtro-card-body">
 
-                    <span class="filtro-titulo">
-                        Filtro para {{ filtro.tipo }}
-                    </span>
+                    <div class="d-flex gap-2 mt-auto">
 
-                    <strong class="filtro-quantidade">
-                        {{ filtro.quantidade }}
-                    </strong>
-
-                    <small>Disponíveis</small>
-
-                    {% if filtro.observacao %}
-                        <p class="filtro-observacao">
-                            {{ filtro.observacao }}
-                        </p>
-                    {% endif %}
-
-                </div>
-
-                <button
-                    type="button"
-                    class="btn btn-sm btn-outline-primary w-100"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalEditarFiltro{{ filtro.id }}"
-                >
-                    <i class="bi bi-pencil"></i>
-                    Atualizar estoque
-                </button>
-
-            </article>
-
-            <div
-                class="modal fade"
-                id="modalEditarFiltro{{ filtro.id }}"
-                tabindex="-1"
-                aria-hidden="true"
-            >
-                <div class="modal-dialog modal-dialog-centered">
-
-                    <div class="modal-content">
-
-                        <form
-                            method="POST"
-                            action="{{ url_for(
-                                'inventario.editar_filtro',
-                                filtro_id=filtro.id
-                            ) }}"
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-primary flex-fill"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalEditarFiltro{{ filtro.id }}"
                         >
+                            <i class="bi bi-pencil"></i>
+                            Editar
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalExcluirFiltro{{ filtro.id }}"
+                            title="Excluir"
+                        >
+                            <i class="bi bi-trash"></i>
+                        </button>
+
+                    </div>
+
+                </article>
+
+
+                <div
+                    class="modal fade"
+                    id="modalEditarFiltro{{ filtro.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+
+                    <div class="modal-dialog modal-dialog-centered">
+
+                        <div class="modal-content">
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'inventario.editar_filtro',
+                                    filtro_id=filtro.id
+                                ) }}"
+                            >
+
+                                <div class="modal-header">
+
+                                    <h5 class="modal-title">
+                                        Editar filtro de privacidade
+                                    </h5>
+
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Fechar"
+                                    ></button>
+
+                                </div>
+
+
+                                <div class="modal-body">
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Tipo
+                                        </label>
+
+                                        <select
+                                            name="tipo"
+                                            class="form-select"
+                                            required
+                                        >
+                                            <option
+                                                value="Notebook"
+                                                {% if filtro.tipo == "Notebook" %}selected{% endif %}
+                                            >
+                                                Notebook
+                                            </option>
+
+                                            <option
+                                                value="Desktop"
+                                                {% if filtro.tipo == "Desktop" %}selected{% endif %}
+                                            >
+                                                Desktop
+                                            </option>
+                                        </select>
+
+                                    </div>
+
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Tamanho
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="tamanho"
+                                            class="form-control"
+                                            value="{{ filtro.tamanho or '' }}"
+                                            placeholder='Exemplo: 14", 15,6", 23,8"'
+                                            required
+                                        >
+
+                                    </div>
+
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Quantidade disponível
+                                        </label>
+
+                                        <input
+                                            type="number"
+                                            name="quantidade"
+                                            class="form-control"
+                                            min="0"
+                                            value="{{ filtro.quantidade }}"
+                                            required
+                                        >
+
+                                    </div>
+
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label">
+                                            Observação
+                                        </label>
+
+                                        <textarea
+                                            name="observacao"
+                                            class="form-control"
+                                            rows="3"
+                                            placeholder="Observação opcional"
+                                        >{{ filtro.observacao or '' }}</textarea>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="modal-footer">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal"
+                                    >
+                                        Cancelar
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        Salvar alterações
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="modal fade"
+                    id="modalExcluirFiltro{{ filtro.id }}"
+                    tabindex="-1"
+                    aria-hidden="true"
+                >
+
+                    <div class="modal-dialog modal-dialog-centered">
+
+                        <div class="modal-content">
 
                             <div class="modal-header">
 
                                 <h5 class="modal-title">
-                                    Atualizar filtro de {{ filtro.tipo }}
+                                    Excluir filtro
                                 </h5>
 
                                 <button
@@ -155,41 +338,27 @@
 
                             </div>
 
+
                             <div class="modal-body">
 
-                                <div class="mb-3">
+                                <p>
+                                    Deseja realmente excluir o filtro:
+                                </p>
 
-                                    <label class="form-label">
-                                        Quantidade disponível
-                                    </label>
+                                <p class="mb-2">
+                                    <strong>
+                                        {{ filtro.tipo }}
+                                        —
+                                        {{ filtro.tamanho or "Sem tamanho" }}
+                                    </strong>
+                                </p>
 
-                                    <input
-                                        type="number"
-                                        name="quantidade"
-                                        class="form-control"
-                                        min="0"
-                                        value="{{ filtro.quantidade }}"
-                                        required
-                                    >
-
-                                </div>
-
-                                <div class="mb-3">
-
-                                    <label class="form-label">
-                                        Observação
-                                    </label>
-
-                                    <textarea
-                                        name="observacao"
-                                        class="form-control"
-                                        rows="3"
-                                        placeholder="Observação opcional"
-                                    >{{ filtro.observacao or '' }}</textarea>
-
-                                </div>
+                                <p class="text-muted mb-0">
+                                    Essa ação não poderá ser desfeita.
+                                </p>
 
                             </div>
+
 
                             <div class="modal-footer">
 
@@ -201,27 +370,55 @@
                                     Cancelar
                                 </button>
 
-                                <button
-                                    type="submit"
-                                    class="btn btn-primary"
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'inventario.excluir_filtro',
+                                        filtro_id=filtro.id
+                                    ) }}"
                                 >
-                                    Salvar
-                                </button>
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-danger"
+                                    >
+                                        Excluir
+                                    </button>
+
+                                </form>
 
                             </div>
 
-                        </form>
+                        </div>
 
                     </div>
 
                 </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <section class="empty-state-card">
+
+            <div class="empty-state-icon">
+                <i class="bi bi-display"></i>
             </div>
 
-        {% endfor %}
+            <h2>Nenhum filtro cadastrado</h2>
 
-    </div>
+            <p>
+                Clique em “Adicionar filtro de privacidade” para cadastrar o primeiro.
+            </p>
+
+        </section>
+
+    {% endif %}
 
 </section>
+
 
 <section class="content-section mt-4">
 
@@ -247,6 +444,7 @@
             </span>
         </div>
 
+
         <div style="width: 320px;">
 
             <div class="input-group">
@@ -268,6 +466,7 @@
         </div>
 
     </div>
+
 
     {% if discos %}
 
@@ -295,6 +494,7 @@
                         </span>
 
                     </div>
+
 
                     <div class="integration-card-body">
 
@@ -328,6 +528,7 @@
                         </p>
 
                     </div>
+
 
                     <div class="integration-card-footer">
 
@@ -364,12 +565,14 @@
 
                 </article>
 
+
                 <div
                     class="modal fade"
                     id="modalEditarDisco{{ disco.id }}"
                     tabindex="-1"
                     aria-hidden="true"
                 >
+
                     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
 
                         <div class="modal-content">
@@ -397,6 +600,7 @@
 
                                 </div>
 
+
                                 <div class="modal-body">
 
                                     <div class="mb-3">
@@ -415,6 +619,7 @@
 
                                     </div>
 
+
                                     <div class="mb-3">
 
                                         <label class="form-label">
@@ -429,6 +634,7 @@
                                         >
 
                                     </div>
+
 
                                     <div class="mb-3">
 
@@ -445,6 +651,7 @@
 
                                     </div>
 
+
                                     <div class="mb-3">
 
                                         <label class="form-label">
@@ -459,6 +666,7 @@
                                         >
 
                                     </div>
+
 
                                     <div class="mb-3">
 
@@ -501,6 +709,7 @@
 
                                     </div>
 
+
                                     <div class="mb-3">
 
                                         <label class="form-label">
@@ -516,6 +725,7 @@
                                     </div>
 
                                 </div>
+
 
                                 <div class="modal-footer">
 
@@ -541,7 +751,9 @@
                         </div>
 
                     </div>
+
                 </div>
+
 
                 <div
                     class="modal fade"
@@ -549,6 +761,7 @@
                     tabindex="-1"
                     aria-hidden="true"
                 >
+
                     <div class="modal-dialog modal-dialog-centered">
 
                         <div class="modal-content">
@@ -568,6 +781,7 @@
 
                             </div>
 
+
                             <div class="modal-body">
 
                                 <p>
@@ -580,6 +794,7 @@
                                 </p>
 
                             </div>
+
 
                             <div class="modal-footer">
 
@@ -613,11 +828,13 @@
                         </div>
 
                     </div>
+
                 </div>
 
             {% endfor %}
 
         </div>
+
 
         <div
             id="nenhumResultadoDiscos"
@@ -656,12 +873,156 @@
 
 </section>
 
+
+<div
+    class="modal fade"
+    id="modalCadastrarFiltro"
+    tabindex="-1"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <form
+                method="POST"
+                action="{{ url_for('inventario.cadastrar_filtro') }}"
+            >
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Adicionar filtro de privacidade
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Fechar"
+                    ></button>
+
+                </div>
+
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Tipo
+                        </label>
+
+                        <select
+                            name="tipo"
+                            class="form-select"
+                            required
+                        >
+                            <option value="">
+                                Selecione
+                            </option>
+
+                            <option value="Notebook">
+                                Notebook
+                            </option>
+
+                            <option value="Desktop">
+                                Desktop
+                            </option>
+                        </select>
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Tamanho
+                        </label>
+
+                        <input
+                            type="text"
+                            name="tamanho"
+                            class="form-control"
+                            placeholder='Exemplo: 14", 15,6", 23,8"'
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Quantidade disponível
+                        </label>
+
+                        <input
+                            type="number"
+                            name="quantidade"
+                            class="form-control"
+                            min="0"
+                            value="0"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Observação
+                        </label>
+
+                        <textarea
+                            name="observacao"
+                            class="form-control"
+                            rows="3"
+                            placeholder="Observação opcional"
+                        ></textarea>
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Cadastrar filtro
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
 <div
     class="modal fade"
     id="modalCadastrarDisco"
     tabindex="-1"
     aria-hidden="true"
 >
+
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
 
         <div class="modal-content">
@@ -686,6 +1047,7 @@
 
                 </div>
 
+
                 <div class="modal-body">
 
                     <div class="mb-3">
@@ -704,6 +1066,7 @@
 
                     </div>
 
+
                     <div class="mb-3">
 
                         <label class="form-label">
@@ -718,6 +1081,7 @@
                         >
 
                     </div>
+
 
                     <div class="mb-3">
 
@@ -734,6 +1098,7 @@
 
                     </div>
 
+
                     <div class="mb-3">
 
                         <label class="form-label">
@@ -747,6 +1112,7 @@
                         >
 
                     </div>
+
 
                     <div class="mb-3">
 
@@ -777,6 +1143,7 @@
 
                     </div>
 
+
                     <div class="mb-3">
 
                         <label class="form-label">
@@ -793,6 +1160,7 @@
                     </div>
 
                 </div>
+
 
                 <div class="modal-footer">
 
@@ -818,9 +1186,11 @@
         </div>
 
     </div>
+
 </div>
 
 {% endblock %}
+
 
 {% block scripts %}
 

@@ -18,7 +18,8 @@ inventario_bp = Blueprint(
 def inventario():
 
     filtros = FiltroPrivacidade.query.order_by(
-        FiltroPrivacidade.tipo.asc()
+        FiltroPrivacidade.tipo.asc(),
+        FiltroPrivacidade.tamanho.asc()
     ).all()
 
     discos = DiscoCofre.query.order_by(
@@ -34,15 +35,21 @@ def inventario():
 
 
 @inventario_bp.route(
-    "/inventario/filtros/<int:filtro_id>/editar",
+    "/inventario/filtros/cadastrar",
     methods=["POST"]
 )
 @login_required
-def editar_filtro(filtro_id):
+def cadastrar_filtro():
 
-    filtro = FiltroPrivacidade.query.get_or_404(
-        filtro_id
-    )
+    tipo = request.form.get(
+        "tipo",
+        ""
+    ).strip()
+
+    tamanho = request.form.get(
+        "tamanho",
+        ""
+    ).strip()
 
     quantidade = request.form.get(
         "quantidade",
@@ -54,8 +61,33 @@ def editar_filtro(filtro_id):
         ""
     ).strip()
 
+    if tipo not in {
+        "Notebook",
+        "Desktop"
+    }:
+        flash(
+            "Selecione um tipo de filtro válido.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("inventario.inventario")
+        )
+
+    if not tamanho:
+        flash(
+            "Informe o tamanho do filtro.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("inventario.inventario")
+        )
+
     try:
-        quantidade = int(quantidade)
+        quantidade = int(
+            quantidade
+        )
 
         if quantidade < 0:
             raise ValueError
@@ -70,6 +102,147 @@ def editar_filtro(filtro_id):
             url_for("inventario.inventario")
         )
 
+    filtro_existente = FiltroPrivacidade.query.filter_by(
+        tipo=tipo,
+        tamanho=tamanho
+    ).first()
+
+    if filtro_existente:
+        flash(
+            "Já existe um filtro cadastrado com esse tipo e tamanho.",
+            "warning"
+        )
+
+        return redirect(
+            url_for("inventario.inventario")
+        )
+
+    novo_filtro = FiltroPrivacidade(
+        tipo=tipo,
+        tamanho=tamanho,
+        quantidade=quantidade,
+        observacao=observacao or None
+    )
+
+    try:
+        db.session.add(
+            novo_filtro
+        )
+
+        db.session.commit()
+
+        flash(
+            "Filtro de privacidade cadastrado com sucesso.",
+            "success"
+        )
+
+    except Exception as erro:
+        db.session.rollback()
+
+        print(
+            f"Erro ao cadastrar filtro: {erro}"
+        )
+
+        flash(
+            "Não foi possível cadastrar o filtro.",
+            "danger"
+        )
+
+    return redirect(
+        url_for("inventario.inventario")
+    )
+
+
+@inventario_bp.route(
+    "/inventario/filtros/<int:filtro_id>/editar",
+    methods=["POST"]
+)
+@login_required
+def editar_filtro(filtro_id):
+
+    filtro = FiltroPrivacidade.query.get_or_404(
+        filtro_id
+    )
+
+    tipo = request.form.get(
+        "tipo",
+        ""
+    ).strip()
+
+    tamanho = request.form.get(
+        "tamanho",
+        ""
+    ).strip()
+
+    quantidade = request.form.get(
+        "quantidade",
+        "0"
+    ).strip()
+
+    observacao = request.form.get(
+        "observacao",
+        ""
+    ).strip()
+
+    if tipo not in {
+        "Notebook",
+        "Desktop"
+    }:
+        flash(
+            "Selecione um tipo de filtro válido.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("inventario.inventario")
+        )
+
+    if not tamanho:
+        flash(
+            "Informe o tamanho do filtro.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("inventario.inventario")
+        )
+
+    try:
+        quantidade = int(
+            quantidade
+        )
+
+        if quantidade < 0:
+            raise ValueError
+
+    except ValueError:
+        flash(
+            "Informe uma quantidade válida.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("inventario.inventario")
+        )
+
+    duplicado = FiltroPrivacidade.query.filter(
+        FiltroPrivacidade.tipo == tipo,
+        FiltroPrivacidade.tamanho == tamanho,
+        FiltroPrivacidade.id != filtro.id
+    ).first()
+
+    if duplicado:
+        flash(
+            "Já existe outro filtro cadastrado com esse tipo e tamanho.",
+            "warning"
+        )
+
+        return redirect(
+            url_for("inventario.inventario")
+        )
+
+    filtro.tipo = tipo
+    filtro.tamanho = tamanho
     filtro.quantidade = quantidade
     filtro.observacao = observacao or None
 
@@ -77,7 +250,7 @@ def editar_filtro(filtro_id):
         db.session.commit()
 
         flash(
-            "Quantidade atualizada com sucesso.",
+            "Filtro atualizado com sucesso.",
             "success"
         )
 
@@ -89,7 +262,47 @@ def editar_filtro(filtro_id):
         )
 
         flash(
-            "Não foi possível atualizar a quantidade.",
+            "Não foi possível atualizar o filtro.",
+            "danger"
+        )
+
+    return redirect(
+        url_for("inventario.inventario")
+    )
+
+
+@inventario_bp.route(
+    "/inventario/filtros/<int:filtro_id>/excluir",
+    methods=["POST"]
+)
+@login_required
+def excluir_filtro(filtro_id):
+
+    filtro = FiltroPrivacidade.query.get_or_404(
+        filtro_id
+    )
+
+    try:
+        db.session.delete(
+            filtro
+        )
+
+        db.session.commit()
+
+        flash(
+            "Filtro de privacidade excluído com sucesso.",
+            "success"
+        )
+
+    except Exception as erro:
+        db.session.rollback()
+
+        print(
+            f"Erro ao excluir filtro: {erro}"
+        )
+
+        flash(
+            "Não foi possível excluir o filtro.",
             "danger"
         )
 
@@ -174,7 +387,10 @@ def cadastrar_disco():
     )
 
     try:
-        db.session.add(novo_disco)
+        db.session.add(
+            novo_disco
+        )
+
         db.session.commit()
 
         flash(
@@ -313,7 +529,10 @@ def excluir_disco(disco_id):
     )
 
     try:
-        db.session.delete(disco)
+        db.session.delete(
+            disco
+        )
+
         db.session.commit()
 
         flash(

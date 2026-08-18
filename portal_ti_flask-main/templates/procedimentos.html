@@ -127,10 +127,7 @@
 
                         {% if procedimento.arquivo_original %}
                             <a
-                                href="{{ url_for(
-                                    'static',
-                                    filename='uploads/procedimentos/' ~ procedimento.arquivo_nome
-                                ) }}"
+                                href="{{ url_for('downloads.baixar_procedimento', nome=procedimento.arquivo_nome) }}"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="d-block mt-2 text-decoration-none"
@@ -240,10 +237,7 @@
                                     <h6>Anexo</h6>
 
                                     <a
-                                        href="{{ url_for(
-                                            'static',
-                                            filename='uploads/procedimentos/' ~ procedimento.arquivo_nome
-                                        ) }}"
+                                        href="{{ url_for('downloads.baixar_procedimento', nome=procedimento.arquivo_nome) }}"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         class="btn btn-outline-primary"

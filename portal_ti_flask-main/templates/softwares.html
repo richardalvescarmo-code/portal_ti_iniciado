@@ -121,10 +121,7 @@
                                 {% if software.arquivo_nome %}
 
                                     <a
-                                        href="{{ url_for(
-                                            'static',
-                                            filename='uploads/softwares/' ~ software.arquivo_nome
-                                        ) }}"
+                                        href="{{ url_for('downloads.baixar_software', nome=software.arquivo_nome) }}"
                                         class="btn btn-sm btn-primary"
                                         download="{{ software.arquivo_original }}"
                                     >

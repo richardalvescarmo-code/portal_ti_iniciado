@@ -1,8 +1,13 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR"
+      data-tema="{{ current_user.tema }}"
+      data-cor="{{ current_user.cor_primaria }}"
+      data-bs-theme="{{ 'dark' if current_user.tema == 'escuro' else 'light' }}">
 
 <head>
     <meta charset="UTF-8">
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <meta
         name="viewport"
@@ -95,6 +100,64 @@
 
                     </div>
 
+                    <div class="dropdown">
+
+                        <button
+                            class="icon-button"
+                            type="button"
+                            id="botaoAparencia"
+                            data-bs-toggle="dropdown"
+                            data-bs-auto-close="outside"
+                            aria-expanded="false"
+                            aria-label="Aparencia"
+                        >
+                            <i class="bi bi-palette"></i>
+                        </button>
+
+                        <div class="dropdown-menu dropdown-menu-end painel-aparencia">
+
+                            <p class="painel-aparencia-titulo">Tema</p>
+
+                            <div class="opcoes-tema">
+
+                                <button
+                                    type="button"
+                                    class="botao-tema"
+                                    data-tema-valor="claro"
+                                >
+                                    <i class="bi bi-sun"></i>
+                                    Claro
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="botao-tema"
+                                    data-tema-valor="escuro"
+                                >
+                                    <i class="bi bi-moon-stars"></i>
+                                    Escuro
+                                </button>
+
+                            </div>
+
+                            <p class="painel-aparencia-titulo">Cor principal</p>
+
+                            <div class="opcoes-cor">
+
+                                <button type="button" class="bolinha-cor" data-cor-valor="azul" style="--amostra: #174ea6" aria-label="Azul"></button>
+                                <button type="button" class="bolinha-cor" data-cor-valor="verde" style="--amostra: #0f7a4a" aria-label="Verde"></button>
+                                <button type="button" class="bolinha-cor" data-cor-valor="roxo" style="--amostra: #5b3fb5" aria-label="Roxo"></button>
+                                <button type="button" class="bolinha-cor" data-cor-valor="laranja" style="--amostra: #c2610a" aria-label="Laranja"></button>
+                                <button type="button" class="bolinha-cor" data-cor-valor="vermelho" style="--amostra: #b42318" aria-label="Vermelho"></button>
+
+                            </div>
+
+                            <p class="painel-aparencia-aviso" id="avisoAparencia"></p>
+
+                        </div>
+
+                    </div>
+
                     <div class="user-chip">
 
                         <div class="user-avatar">
@@ -150,6 +213,73 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+    <script>
+        (function () {
+            var raiz = document.documentElement;
+            var aviso = document.getElementById("avisoAparencia");
+            var token = document.querySelector('meta[name="csrf-token"]').content;
+
+            function marcarSelecionados() {
+                document.querySelectorAll("[data-tema-valor]").forEach(function (b) {
+                    b.classList.toggle("ativo", b.dataset.temaValor === raiz.dataset.tema);
+                });
+                document.querySelectorAll("[data-cor-valor]").forEach(function (b) {
+                    b.classList.toggle("ativo", b.dataset.corValor === raiz.dataset.cor);
+                });
+            }
+
+            // Aplica na hora e so depois grava. Se a gravacao falhar,
+            // desfaz e avisa - o usuario nunca fica achando que salvou.
+            function salvar(campo, valor) {
+                var anterior = raiz.dataset[campo === "tema" ? "tema" : "cor"];
+
+                if (campo === "tema") {
+                    raiz.dataset.tema = valor;
+                    raiz.setAttribute("data-bs-theme", valor === "escuro" ? "dark" : "light");
+                } else {
+                    raiz.dataset.cor = valor;
+                }
+
+                marcarSelecionados();
+                aviso.textContent = "";
+
+                fetch("/preferencias/aparencia", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": token
+                    },
+                    body: JSON.stringify(
+                        campo === "tema" ? { tema: valor } : { cor: valor }
+                    )
+                })
+                .then(function (r) {
+                    if (!r.ok) { throw new Error("falha"); }
+                })
+                .catch(function () {
+                    if (campo === "tema") {
+                        raiz.dataset.tema = anterior;
+                        raiz.setAttribute("data-bs-theme", anterior === "escuro" ? "dark" : "light");
+                    } else {
+                        raiz.dataset.cor = anterior;
+                    }
+                    marcarSelecionados();
+                    aviso.textContent = "Nao foi possivel salvar.";
+                });
+            }
+
+            document.querySelectorAll("[data-tema-valor]").forEach(function (b) {
+                b.addEventListener("click", function () { salvar("tema", b.dataset.temaValor); });
+            });
+
+            document.querySelectorAll("[data-cor-valor]").forEach(function (b) {
+                b.addEventListener("click", function () { salvar("cor", b.dataset.corValor); });
+            });
+
+            marcarSelecionados();
+        })();
+    </script>
 
     {% block scripts %}{% endblock %}
 

@@ -10,3 +10,12 @@ instance/
 # Executáveis enviados pelo Portal TI
 static/uploads/softwares/
 *.exe
+# Backups locais (nao versionar)
+.backup_perfil/
+.backup_tema/
+.backup_uploads/
+*.bak
+uploads/softwares/*
+uploads/procedimentos/*
+!uploads/softwares/.gitkeep
+!uploads/procedimentos/.gitkeep

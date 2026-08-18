@@ -960,3 +960,177 @@ a {
     color: var(--text-muted);
     font-size: 0.62rem;
 }
+
+
+/* =====================================================================
+   PREFERENCIAS DE APARENCIA
+   Tudo aqui funciona sobrescrevendo as variaveis do :root.
+   Nenhuma regra existente precisou ser reescrita - foi por isso que
+   valeu a pena o CSS ja estar baseado em variaveis desde o inicio.
+   ===================================================================== */
+
+/* ---------- Cor principal ---------- */
+
+html[data-cor="verde"] {
+    --primary: #0f7a4a;
+    --primary-dark: #0a5b37;
+    --primary-soft: #e6f5ee;
+}
+
+html[data-cor="roxo"] {
+    --primary: #5b3fb5;
+    --primary-dark: #452e8c;
+    --primary-soft: #efeaff;
+}
+
+html[data-cor="laranja"] {
+    --primary: #c2610a;
+    --primary-dark: #944a08;
+    --primary-soft: #fff2e2;
+}
+
+html[data-cor="vermelho"] {
+    --primary: #b42318;
+    --primary-dark: #8c1b12;
+    --primary-soft: #fee4e2;
+}
+
+/* ---------- Tema escuro ---------- */
+
+html[data-tema="escuro"] {
+    --background: #0f1521;
+    --surface: #161e2d;
+    --surface-muted: #1b2434;
+    --text: #e6eaf2;
+    --text-muted: #97a3ba;
+    --border: #28324a;
+    --shadow: 0 8px 28px rgba(0, 0, 0, 0.38);
+}
+
+html[data-tema="escuro"] body {
+    background: var(--background);
+    color: var(--text);
+}
+
+/* Pontos onde a cor estava fixa no CSS original */
+html[data-tema="escuro"] .icon-button,
+html[data-tema="escuro"] .last-update,
+html[data-tema="escuro"] .modal-footer {
+    background: var(--surface);
+    color: var(--text);
+}
+
+html[data-tema="escuro"] .modal-content,
+html[data-tema="escuro"] .dropdown-menu {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+html[data-tema="escuro"] .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text);
+    --bs-table-border-color: var(--border);
+}
+
+html[data-tema="escuro"] .form-control,
+html[data-tema="escuro"] .form-select,
+html[data-tema="escuro"] .topbar-search input {
+    background: var(--surface-muted);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+html[data-tema="escuro"] .form-control::placeholder,
+html[data-tema="escuro"] .topbar-search input::placeholder {
+    color: var(--text-muted);
+}
+
+/* ---------- Painel de aparencia ---------- */
+
+.painel-aparencia {
+    min-width: 232px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+}
+
+.painel-aparencia-titulo {
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.opcoes-tema {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.botao-tema {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 8px;
+    font-size: 13px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.botao-tema:hover {
+    border-color: var(--primary);
+}
+
+.botao-tema.ativo {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-weight: 600;
+}
+
+html[data-tema="escuro"] .botao-tema.ativo {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+}
+
+.opcoes-cor {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.bolinha-cor {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background: var(--amostra);
+    cursor: pointer;
+    outline-offset: 2px;
+}
+
+.bolinha-cor:hover {
+    transform: scale(1.08);
+}
+
+.bolinha-cor.ativo {
+    border-color: var(--text);
+    box-shadow: 0 0 0 2px var(--surface) inset;
+}
+
+.painel-aparencia-aviso {
+    margin: 8px 0 0;
+    min-height: 16px;
+    font-size: 12px;
+    color: #b42318;
+}

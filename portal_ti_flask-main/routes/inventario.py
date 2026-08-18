@@ -3,6 +3,7 @@ from datetime import datetime
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import login_required
 
+from utils.permissoes import perfis_permitidos
 from extensions import db
 from models.inventario import DiscoCofre, FiltroPrivacidade
 
@@ -39,6 +40,7 @@ def inventario():
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def cadastrar_filtro():
 
     tipo = request.form.get(
@@ -158,6 +160,7 @@ def cadastrar_filtro():
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def editar_filtro(filtro_id):
 
     filtro = FiltroPrivacidade.query.get_or_404(
@@ -276,6 +279,7 @@ def editar_filtro(filtro_id):
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def excluir_filtro(filtro_id):
 
     filtro = FiltroPrivacidade.query.get_or_404(
@@ -316,6 +320,7 @@ def excluir_filtro(filtro_id):
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def cadastrar_disco():
 
     identificacao_maquina = request.form.get(
@@ -420,6 +425,7 @@ def cadastrar_disco():
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def editar_disco(disco_id):
 
     disco = DiscoCofre.query.get_or_404(
@@ -522,6 +528,7 @@ def editar_disco(disco_id):
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def excluir_disco(disco_id):
 
     disco = DiscoCofre.query.get_or_404(

@@ -1,6 +1,7 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import login_required
 
+from utils.permissoes import perfis_permitidos
 from extensions import db
 from models.ferramentas import Ferramenta
 
@@ -31,6 +32,7 @@ def ferramentas():
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def cadastrar_ferramenta():
 
     nome = request.form.get(
@@ -121,6 +123,7 @@ def cadastrar_ferramenta():
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def editar_ferramenta(ferramenta_id):
 
     ferramenta = Ferramenta.query.get_or_404(
@@ -213,6 +216,7 @@ def editar_ferramenta(ferramenta_id):
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def excluir_ferramenta(ferramenta_id):
 
     ferramenta = Ferramenta.query.get_or_404(

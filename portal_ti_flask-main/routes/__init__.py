@@ -2,8 +2,10 @@ from .auditoria import auditoria_bp
 from .auth import auth_bp
 from .configuracoes import configuracoes_bp
 from .dashboard import dashboard_bp
+from .downloads import downloads_bp
 from .ferramentas import ferramentas_bp
 from .inventario import inventario_bp
 from .pesquisa import pesquisa_bp
+from .preferencias import preferencias_bp
 from .procedimentos import procedimentos_bp
 from .softwares import softwares_bp

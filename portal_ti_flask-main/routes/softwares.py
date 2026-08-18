@@ -5,6 +5,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 
+from utils.permissoes import perfis_permitidos
 from extensions import db
 from models.softwares import Software
 from utils.auditoria import registrar_auditoria
@@ -19,7 +20,6 @@ softwares_bp = Blueprint(
 def pasta_uploads():
     return os.path.join(
         os.getcwd(),
-        "static",
         "uploads",
         "softwares"
     )
@@ -90,6 +90,7 @@ def softwares():
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def cadastrar_software():
 
     nome = request.form.get(
@@ -208,6 +209,7 @@ def cadastrar_software():
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def editar_software(software_id):
 
     software = Software.query.get_or_404(
@@ -342,6 +344,7 @@ def editar_software(software_id):
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def excluir_software(software_id):
 
     software = Software.query.get_or_404(

@@ -5,6 +5,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import login_required
 from werkzeug.utils import secure_filename
 
+from utils.permissoes import perfis_permitidos
 from extensions import db
 from models.procedimentos import Procedimento
 
@@ -38,7 +39,6 @@ def extensao_permitida(nome_arquivo):
 def pasta_uploads():
     return os.path.join(
         os.getcwd(),
-        "static",
         "uploads",
         "procedimentos"
     )
@@ -114,6 +114,7 @@ def procedimentos():
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def cadastrar_procedimento():
 
     titulo = request.form.get(
@@ -222,6 +223,7 @@ def cadastrar_procedimento():
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def editar_procedimento(procedimento_id):
 
     procedimento = Procedimento.query.get_or_404(
@@ -351,6 +353,7 @@ def editar_procedimento(procedimento_id):
     methods=["POST"]
 )
 @login_required
+@perfis_permitidos("administrador")
 def excluir_procedimento(procedimento_id):
 
     procedimento = Procedimento.query.get_or_404(
